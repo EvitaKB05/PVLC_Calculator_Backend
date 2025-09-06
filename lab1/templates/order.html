@@ -1,8 +1,13 @@
 <html lang="en">
+	<head>
+		<title>lab1</title>
+		<link rel="stylesheet" href="/static/styles/order_style.css" />
+	</head>
 	<header>
 		<h1>
-			<a href="/hello">Список</a>
-			<!--Простой хедер, чтобы возвращаться на главную страницу-->
+			<a href="/hello"
+				><img src="/static/img/home.jpg" alt="home" width="50px" height="50px"
+			/></a>
 		</h1>
 	</header>
 	<h1>Информация о заказе №{{ .order.ID }}</h1>

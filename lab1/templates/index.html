@@ -1,11 +1,25 @@
 <html lang="en">
+	<head>
+		<title>lab1</title>
+		<link rel="stylesheet" href="/static/styles/index_style.css" />
+	</head>
 	<header>
 		<h1>
-			<a href="/hello">Список</a>
-			<!--Простой хедер, чтобы возвращаться на главную страницу-->
+			<a href="/hello"><img src="/static/img/home.jpg" alt="home" /></a>
 		</h1>
 	</header>
-	<h1>{{ .time }}</h1>
+	<form action="/hello" method="GET">
+		<input
+			type="text"
+			name="query"
+			placeholder="Введите запрос"
+			value="{{ .query }}"
+		/>
+		<!-- value="{{ .query }}"  нужно для того, чтобы из обработчика передавать
+    введенный запрос обратно на страницу. Тем самым введенный текст в поле поиска будет сохраняться-->
+		<button type="submit">Найти</button>
+	</form>
+	<h2>{{ .time }}</h2>
 	<ul>
 		{{ range .orders }}
 		<li>
