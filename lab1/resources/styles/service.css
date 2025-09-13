@@ -1,0 +1,245 @@
+/* service.css - Стили для страницы детальной информации об услуге */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Arial', sans-serif;
+	background: #f8f9fa;
+	min-height: 100vh;
+	color: #333;
+	line-height: 1.6;
+}
+
+.header {
+	background: #fff;
+	padding: 2rem 0 1rem 0;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.header-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 2rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.home-link {
+	display: flex;
+	align-items: center;
+	text-decoration: none;
+	color: #333;
+}
+
+.home-icon {
+	width: 60px;
+	height: 60px;
+	border-radius: 8px;
+	object-fit: cover;
+	margin-right: 15px;
+}
+
+.logo-text {
+	font-size: 2rem;
+	font-weight: 300;
+	color: #333;
+}
+
+.main-content {
+	padding: 0 0 2rem 0;
+}
+
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 2rem;
+}
+
+.page-header {
+	width: 100vw;
+	position: relative;
+	text-align: center;
+	left: 50%;
+	right: 50%;
+	color: #fff;
+	margin-left: -50vw;
+	margin-right: -50vw;
+	background: #00a6ca;
+	margin-bottom: 3rem;
+}
+
+.page-title {
+	font-size: 2.2rem;
+	font-weight: 300;
+	margin-bottom: 1rem;
+}
+
+.service-detail {
+	background: #fff;
+	border-radius: 10px;
+	padding: 2rem;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	margin-bottom: 2rem;
+}
+
+.service-content-wrapper {
+	display: flex;
+	gap: 3rem;
+	align-items: flex-start;
+}
+
+.service-image-container {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	min-height: 300px;
+	max-width: 400px;
+	margin: 0 auto;
+}
+
+.service-main-image {
+	width: 100%;
+	height: auto;
+	max-height: 500px;
+	object-fit: contain;
+	border-radius: 8px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.service-info-container {
+	flex: 1.2;
+}
+
+.service-title {
+	font-size: 1.8rem;
+	color: #333;
+	margin-bottom: 1.5rem;
+	font-weight: 600;
+	padding-bottom: 0.5rem;
+}
+
+.service-meta {
+	background: #f9f9f9;
+	padding: 1.5rem;
+	border-radius: 8px;
+	border: 1px solid #e0e0e0;
+}
+
+.meta-item {
+	margin-bottom: 1rem;
+	font-size: 1.1rem;
+	color: #555;
+	line-height: 1.5;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid #eee;
+}
+
+.meta-item:last-child {
+	margin-bottom: 0;
+	border-bottom: none;
+}
+
+.meta-item strong {
+	color: #333;
+	font-weight: 600;
+}
+
+.footer {
+	background: #fff;
+	padding: 1.5rem 0;
+	text-align: center;
+	border-top: 1px solid #e0e0e0;
+	margin-top: 3rem;
+	color: #666;
+	font-size: 0.9rem;
+}
+
+@media (max-width: 968px) {
+	.service-content-wrapper {
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.service-image-container {
+		min-height: 250px;
+	}
+
+	.service-main-image {
+		max-height: 400px;
+	}
+}
+
+@media (max-width: 768px) {
+	.header-container {
+		flex-direction: column;
+		gap: 1rem;
+		text-align: center;
+	}
+
+	.page-title {
+		font-size: 1.6rem;
+	}
+
+	.service-detail {
+		padding: 1.5rem;
+	}
+
+	.service-image-container {
+		min-height: 200px;
+	}
+
+	.service-main-image {
+		max-height: 350px;
+	}
+}
+
+@media (max-width: 480px) {
+	.logo-text {
+		font-size: 1.5rem;
+	}
+
+	.page-title {
+		font-size: 1.4rem;
+	}
+
+	.service-title {
+		font-size: 1.5rem;
+	}
+
+	.home-icon {
+		margin-right: 10px;
+		width: 40px;
+		height: 40px;
+	}
+
+	.page-header {
+		padding: 1.5rem;
+	}
+
+	.service-image-container {
+		min-height: 150px;
+	}
+
+	.service-main-image {
+		max-height: 300px;
+	}
+
+	.service-meta {
+		padding: 1rem;
+	}
+
+	.meta-item {
+		font-size: 1rem;
+	}
+}

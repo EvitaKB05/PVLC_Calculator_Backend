@@ -1,6 +1,5 @@
 package repository
 
-//final!
 import (
 	"fmt"
 	"strings"
@@ -13,63 +12,200 @@ func NewRepository() (*Repository, error) {
 	return &Repository{}, nil
 }
 
-type Order struct { // вот наша новая структура
-	ID    int    // поля структур, которые передаются в шаблон
-	Title string // ОБЯЗАТЕЛЬНО должны быть написаны с заглавной буквы (то есть публичными)
+type Service struct {
+	ID          int
+	Title       string
+	Description string
+	Formula     string
+	Image       string
+	Category    string
+	Gender      string
+	MinAge      int
+	MaxAge      int
+	Height      string // Добавлено поле для роста
+	Result      string // Добавлено поле для результата ДЖЕЛ
 }
 
-func (r *Repository) GetOrders() ([]Order, error) {
-	// имитируем работу с БД. Типа мы выполнили sql запрос и получили эти строки из БД
-	orders := []Order{ // массив элементов из наших структур
+func (r *Repository) GetServices() ([]Service, error) {
+	services := []Service{
 		{
-			ID:    1,
-			Title: "first order",
+			ID:          1,
+			Title:       "Мальчики 4-7 лет",
+			Description: "Расчет ДЖЕЛ для мальчиков дошкольного возраста",
+			Formula:     "ДЖЕЛ (л) = (0.043 × Рост) - (0.015 × Возраст) - 2.89",
+			Image:       "boys_4_7.png",
+			Category:    "дети",
+			Gender:      "мужской",
+			MinAge:      4,
+			MaxAge:      7,
+			Height:      "127 см", // Добавлено значение роста
+			Result:      "2.57 л", // Добавлено значение результата
 		},
 		{
-			ID:    2,
-			Title: "second order",
+			ID:          2,
+			Title:       "Девочки 4-7 лет",
+			Description: "Расчет ДЖЕЛ для девочек дошкольного возраста",
+			Formula:     "ДЖЕЛ (л) = (0.037 × Рост) - (0.012 × Возраст) - 2.54",
+			Image:       "girls_4_7.png",
+			Category:    "дети",
+			Gender:      "женский",
+			MinAge:      4,
+			MaxAge:      7,
+			Height:      "120 см", // Добавлено значение роста
+			Result:      "1.90 л", // Добавлено значение результата
 		},
 		{
-			ID:    3,
-			Title: "third order",
+			ID:          3,
+			Title:       "Мальчики 8-12 лет",
+			Description: "Расчет ДЖЕЛ для мальчиков младшего школьного возраста",
+			Formula:     "ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.60",
+			Image:       "boys_8_12.png",
+			Category:    "дети",
+			Gender:      "мужской",
+			MinAge:      8,
+			MaxAge:      12,
+			Height:      "",
+			Result:      "",
 		},
-	}
-	// обязательно проверяем ошибки, и если они появились - передаем выше, то есть хендлеру
-	// тут я снова искусственно обработаю "ошибку" чисто чтобы показать вам как их передавать выше
-	if len(orders) == 0 {
-		return nil, fmt.Errorf("массив пустой")
+		{
+			ID:          4,
+			Title:       "Девочки 8-12 лет",
+			Description: "Расчет ДЖЕЛ для девочек младшего школьного возраста",
+			Formula:     "ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.70",
+			Image:       "girls_8_12.png",
+			Category:    "дети",
+			Gender:      "женский",
+			MinAge:      8,
+			MaxAge:      12,
+			Height:      "",
+			Result:      "",
+		},
+		{
+			ID:          5,
+			Title:       "Юноши 13-17 лет",
+			Description: "Расчет ДЖЕЛ для юношей подросткового возраста",
+			Formula:     "ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.20",
+			Image:       "boys_13_17.png",
+			Category:    "подростки",
+			Gender:      "мужской",
+			MinAge:      13,
+			MaxAge:      17,
+			Height:      "",
+			Result:      "",
+		},
+		{
+			ID:          6,
+			Title:       "Девушки 13-17 лет",
+			Description: "Расчет ДЖЕЛ для девушек подросткового возраста",
+			Formula:     "ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.20",
+			Image:       "girls_13_17.png",
+			Category:    "подростки",
+			Gender:      "женский",
+			MinAge:      13,
+			MaxAge:      17,
+			Height:      "",
+			Result:      "",
+		},
+		{
+			ID:          7,
+			Title:       "Мужчины 18-60 лет",
+			Description: "Расчет ДЖЕЛ для взрослых мужчин",
+			Formula:     "ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 3.60",
+			Image:       "men_18_60.png",
+			Category:    "взрослые",
+			Gender:      "мужской",
+			MinAge:      18,
+			MaxAge:      60,
+			Height:      "",
+			Result:      "",
+		},
+		{
+			ID:          8,
+			Title:       "Женщины 18-60 лет",
+			Description: "Расчет ДЖЕЛ для взрослых женщин",
+			Formula:     "ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 2.69",
+			Image:       "women_18_60.png",
+			Category:    "взрослые",
+			Gender:      "женский",
+			MinAge:      18,
+			MaxAge:      60,
+			Height:      "",
+			Result:      "",
+		},
+		{
+			ID:          9,
+			Title:       "Пожилые 60+ лет",
+			Description: "Расчет ДЖЕЛ для пожилых людей",
+			Formula:     "ДЖЕЛ (л) = (0.044 × Рост) - (0.024 × Возраст) - 2.86",
+			Image:       "elderly_60plus.png",
+			Category:    "пожилые",
+			Gender:      "унисекс",
+			MinAge:      60,
+			MaxAge:      100,
+			Height:      "",
+			Result:      "",
+		},
 	}
 
-	return orders, nil
+	if len(services) == 0 {
+		return nil, fmt.Errorf("массив услуг пустой")
+	}
+	return services, nil
 }
 
-func (r *Repository) GetOrder(id int) (Order, error) {
-	// тут у вас будет логика получения нужной услуги, тоже наверное через цикл в первой лабе, и через запрос к БД начиная со второй
-	orders, err := r.GetOrders()
+func (r *Repository) GetService(id int) (Service, error) {
+	services, err := r.GetServices()
 	if err != nil {
-		return Order{}, err // тут у нас уже есть кастомная ошибка из нашего метода, поэтому мы можем просто вернуть ее
+		return Service{}, err
 	}
 
-	for _, order := range orders {
-		if order.ID == id {
-			return order, nil // если нашли, то просто возвращаем найденный заказ (услугу) без ошибок
+	for _, service := range services {
+		if service.ID == id {
+			return service, nil
 		}
 	}
-	return Order{}, fmt.Errorf("заказ не найден") // тут нужна кастомная ошибка, чтобы понимать на каком этапе возникла ошибка и что произошло
+	return Service{}, fmt.Errorf("услуга не найдена")
 }
 
-func (r *Repository) GetOrdersByTitle(title string) ([]Order, error) {
-	orders, err := r.GetOrders()
+func (r *Repository) GetServicesByTitle(title string) ([]Service, error) {
+	services, err := r.GetServices()
 	if err != nil {
-		return []Order{}, err
+		return []Service{}, err
 	}
 
-	var result []Order
-	for _, order := range orders {
-		if strings.Contains(strings.ToLower(order.Title), strings.ToLower(title)) {
-			result = append(result, order)
+	var result []Service
+	for _, service := range services {
+		if strings.Contains(strings.ToLower(service.Title), strings.ToLower(title)) {
+			result = append(result, service)
 		}
+	}
+	return result, nil
+}
+
+func (r *Repository) GetCalculation() ([]Service, error) {
+	services, err := r.GetServices()
+	if err != nil {
+		return []Service{}, err
+	}
+
+	var result []Service
+	for _, service := range services {
+		if service.ID == 1 || service.ID == 2 {
+			result = append(result, service)
+		}
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("массив расчетов пустой")
 	}
 
 	return result, nil
+}
+
+func (r *Repository) GetCalculationsCount() (int, error) {
+	calculations, err := r.GetCalculation()
+	if err != nil {
+		return 0, err
+	}
+	return len(calculations), nil
 }

@@ -1,0 +1,79 @@
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{ .service.Title }} - Лёгкая Жизнь</title>
+		<link rel="stylesheet" href="/static/styles/service.css" />
+	</head>
+	<body>
+		<!-- Хедер странички -->
+		<header class="header">
+			<div class="header-container">
+				<div class="logo">
+					<a href="/services" class="home-link">
+						<img
+							src="http://localhost:9000/lab1/lung.png"
+							alt="Лёгкая Жизнь"
+							class="home-icon"
+						/>
+						<span class="logo-text">Лёгкая Жизнь</span>
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Основной контент -->
+		<main class="main-content">
+			<div class="container">
+				<!-- Заголовок страницы -->
+				<div class="page-header">
+					<h1 class="page-title">
+						Расчёт должной жизненной ёмкости лёгких (ДЖЕЛ)
+					</h1>
+				</div>
+
+				<div class="service-detail">
+					<div class="service-content-wrapper">
+						<div class="service-image-container">
+							<img
+								src="http://localhost:9000/lab1/{{ .service.Image }}"
+								alt="{{ .service.Title }}"
+								class="service-main-image"
+							/>
+						</div>
+
+						<div class="service-info-container">
+							<h2 class="service-title">{{ .service.Title }}</h2>
+
+							<div class="service-meta">
+								<p class="meta-item">
+									<strong>Категория:</strong> {{ .service.Category }}
+								</p>
+								<p class="meta-item">
+									<strong>Пол:</strong> {{ .service.Gender }}
+								</p>
+								<p class="meta-item">
+									<strong>Возраст:</strong> {{ .service.MinAge }}-{{
+									.service.MaxAge }} лет
+								</p>
+								<p class="meta-item">
+									<strong>Формула расчёта:</strong> {{ .service.Formula }}
+								</p>
+								<p class="meta-item">
+									<strong>Описание:</strong> {{ .service.Description }}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<!-- Футер -->
+		<footer class="footer">
+			<div class="container">
+				<p>&copy; 2025 Лёгкая Жизнь. Кудабаева Эвита ИУ5-52Б.</p>
+			</div>
+		</footer>
+	</body>
+</html>

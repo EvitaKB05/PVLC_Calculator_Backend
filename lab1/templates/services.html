@@ -1,0 +1,105 @@
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Лёгкая Жизнь - Расчет ДЖЕЛ</title>
+		<link rel="stylesheet" href="/static/styles/services.css" />
+	</head>
+	<body>
+		<!-- Хедер странички -->
+		<header class="header">
+			<div class="header-container">
+				<div class="logo">
+					<a href="/services" class="home-link">
+						<img
+							src="http://localhost:9000/lab1/lung.png"
+							alt="Лёгкая Жизнь"
+							class="home-icon"
+						/>
+						<span class="logo-text">Лёгкая Жизнь</span>
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- Основной контент -->
+		<main class="main-content">
+			<div class="container">
+				<!-- Заголовок страницы -->
+				<div class="page-header">
+					<h1 class="page-title">
+						Расчёт должной жизненной емкости лёгких (ДЖЕЛ)
+					</h1>
+				</div>
+
+				<!-- Поисковая строка -->
+				<section class="search-section">
+					<form action="/services" method="GET" class="search-form">
+						<div class="search-group">
+							<input
+								type="text"
+								name="query"
+								placeholder="Поиск категорий..."
+								value="{{ .query }}"
+								class="search-input"
+							/>
+							<button type="submit" class="search-button">Найти</button>
+						</div>
+					</form>
+				</section>
+
+				<!-- Сетка с карточками услуг -->
+				<section class="services-section">
+					<div class="services-grid">
+						{{ range .services }}
+						<div class="service-card">
+							<div class="card-image">
+								<img
+									src="http://localhost:9000/lab1/{{ .Image }}"
+									alt="{{ .Title }}"
+									class="service-image"
+								/>
+							</div>
+							<div class="card-content">
+								<h3 class="card-title">{{ .Title }}</h3>
+								<div class="card-buttons">
+									<a href="/service/{{ .ID }}" class="btn btn-details">
+										Подробнее
+									</a>
+									<!--<button
+										type="button"
+										class="btn btn-select"
+										onclick="return false;"
+									>
+										Выбрать
+									</button> -->
+								</div>
+							</div>
+						</div>
+						{{ end }}
+					</div>
+				</section>
+			</div>
+		</main>
+
+		<!-- Иконка папки в левом нижнем углу -->
+		<a href="/calculation" class="folder-icon">
+			<img
+				src="http://localhost:9000/lab1/folder.png"
+				alt="Заявки"
+				width="100"
+				height="70"
+			/>
+			{{ if .calculationsCount }}
+			<span class="notification-badge">{{ .calculationsCount }}</span>
+			{{ end }}
+		</a>
+
+		<!-- Футер -->
+		<footer class="footer">
+			<div class="container">
+				<p>&copy; 2025 Лёгкая Жизнь. Кудабаева Эвита ИУ5-52Б.</p>
+			</div>
+		</footer>
+	</body>
+</html>

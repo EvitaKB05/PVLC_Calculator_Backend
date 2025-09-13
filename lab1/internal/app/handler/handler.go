@@ -1,6 +1,5 @@
 package handler
 
-//final!
 import (
 	"lab1/internal/app/repository"
 	"net/http"
@@ -21,45 +20,65 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-func (h *Handler) GetOrders(ctx *gin.Context) {
-	var orders []repository.Order
+func (h *Handler) GetServices(ctx *gin.Context) {
+	var services []repository.Service
 	var err error
 
-	searchQuery := ctx.Query("query") // получаем значение из поле поиска
-	if searchQuery == "" {            // если поле поиска пусто, то просто получаем из репозитория все записи
-		orders, err = h.Repository.GetOrders()
+	searchQuery := ctx.Query("query")
+	if searchQuery == "" {
+		services, err = h.Repository.GetServices()
 		if err != nil {
 			logrus.Error(err)
 		}
 	} else {
-		orders, err = h.Repository.GetOrdersByTitle(searchQuery) // в ином случае ищем заказ по заголовку
+		services, err = h.Repository.GetServicesByTitle(searchQuery)
 		if err != nil {
 			logrus.Error(err)
 		}
 	}
 
-	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"time":   time.Now().Format("15:04:05"),
-		"orders": orders,
-		"query":  searchQuery, // передаем введенный запрос обратно на страницу
-		// в ином случае оно будет очищаться при нажатии на кнопку
+	calculationsCount, err := h.Repository.GetCalculationsCount()
+	if err != nil {
+		logrus.Error("Ошибка получения количества расчетов:", err)
+		calculationsCount = 0
+	}
+
+	ctx.HTML(http.StatusOK, "services.html", gin.H{
+		"time":              time.Now().Format("15:04:05"),
+		"services":          services,
+		"query":             searchQuery,
+		"calculationsCount": calculationsCount,
 	})
 }
 
-func (h *Handler) GetOrder(ctx *gin.Context) {
-	idStr := ctx.Param("id") // получаем id заказа из урла (то есть из /order/:id)
-	// через двоеточие мы указываем параметры, которые потом сможем считать через функцию выше
-	id, err := strconv.Atoi(idStr) // так как функция выше возвращает нам строку, нужно ее преобразовать в int
+func (h *Handler) GetService(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	order, err := h.Repository.GetOrder(id)
+	service, err := h.Repository.GetService(id)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	ctx.HTML(http.StatusOK, "order.html", gin.H{
-		"order": order,
+	ctx.HTML(http.StatusOK, "service.html", gin.H{
+		"service":           service,
+		"calculationsCount": 0, // или реальное значение, если нужно
+	})
+}
+
+func (h *Handler) GetCalculation(ctx *gin.Context) {
+	calculations, err := h.Repository.GetCalculation()
+	if err != nil {
+		logrus.Error(err)
+		calculations = []repository.Service{} // пустой массив вместо ошибки
+	}
+
+	ctx.HTML(http.StatusOK, "calculation.html", gin.H{
+		"calculations":      calculations,
+		"calculationsCount": len(calculations),
 	})
 }

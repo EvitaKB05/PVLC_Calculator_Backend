@@ -1,0 +1,46 @@
+{{define "title"}}Лёгкая Жизнь - Расчет ДЖЕЛ{{end}} {{define "styles"}}
+<link rel="stylesheet" href="/static/styles/base.css" />
+<link rel="stylesheet" href="/static/styles/services.css" />
+{{end}} {{define "content"}}
+<!-- Поисковая строка -->
+<section class="search-section">
+	<form action="/services" method="GET" class="search-form">
+		<div class="search-group">
+			<input
+				type="text"
+				name="query"
+				placeholder="Поиск категорий..."
+				value="{{ .query }}"
+				class="search-input"
+			/>
+			<button type="submit" class="search-button">Найти</button>
+		</div>
+	</form>
+</section>
+
+<!-- Сетка с карточками услуг -->
+<section class="services-section">
+	<div class="services-grid">
+		{{ range .services }}
+		<div class="service-card">
+			<div class="card-image">
+				<img
+					src="http://localhost:9000/lab1/{{ .Image }}"
+					alt="{{ .Title }}"
+					class="service-image"
+				/>
+			</div>
+			<div class="card-content">
+				<h3 class="card-title">{{ .Title }}</h3>
+				<div class="card-buttons">
+					<a href="/service/{{ .ID }}" class="btn btn-details"> Подробнее </a>
+					<button type="button" class="btn btn-select" onclick="return false;">
+						Выбрать
+					</button>
+				</div>
+			</div>
+		</div>
+		{{ end }}
+	</div>
+</section>
+{{end}} {{template "base.html" .}}
