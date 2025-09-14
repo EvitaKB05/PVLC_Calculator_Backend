@@ -22,8 +22,8 @@ type Service struct {
 	Gender      string
 	MinAge      int
 	MaxAge      int
-	Height      string // Добавлено поле для роста
-	Result      string // Добавлено поле для результата ДЖЕЛ
+	Height      string // пока строка
+	Result      string // пока строка
 }
 
 func (r *Repository) GetServices() ([]Service, error) {
@@ -38,8 +38,8 @@ func (r *Repository) GetServices() ([]Service, error) {
 			Gender:      "мужской",
 			MinAge:      4,
 			MaxAge:      7,
-			Height:      "127 см", // Добавлено значение роста
-			Result:      "2.57 л", // Добавлено значение результата
+			Height:      "127 см", //
+			Result:      "2.57 л", //
 		},
 		{
 			ID:          2,
@@ -51,8 +51,8 @@ func (r *Repository) GetServices() ([]Service, error) {
 			Gender:      "женский",
 			MinAge:      4,
 			MaxAge:      7,
-			Height:      "120 см", // Добавлено значение роста
-			Result:      "1.90 л", // Добавлено значение результата
+			Height:      "120 см", //
+			Result:      "1.90 л", //
 		},
 		{
 			ID:          3,

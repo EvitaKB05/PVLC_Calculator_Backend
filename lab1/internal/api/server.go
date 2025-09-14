@@ -21,10 +21,11 @@ func StartServer() {
 
 	r := gin.Default()
 
+	// шаблоны
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./resources")
 
-	// Основные маршруты
+	// маршруты запросы
 	r.GET("/", handler.GetServices)
 	r.GET("/services", handler.GetServices)
 	r.GET("/service/:id", handler.GetService)

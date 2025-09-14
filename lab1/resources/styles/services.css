@@ -1,4 +1,4 @@
-/* services.css - Простой дизайн как в примере "Лёгкая Жизнь" */
+/* потом не забыть кнопки */
 
 * {
 	margin: 0;
@@ -256,6 +256,7 @@ body {
 .btn-select {
 	background: #e40055;
 	color: #fff;
+	display: none;
 }
 
 .btn-select:hover {

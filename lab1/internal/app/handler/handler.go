@@ -66,7 +66,7 @@ func (h *Handler) GetService(ctx *gin.Context) {
 
 	ctx.HTML(http.StatusOK, "service.html", gin.H{
 		"service":           service,
-		"calculationsCount": 0, // или реальное значение, если нужно
+		"calculationsCount": 0, // валую если надо будет
 	})
 }
 
@@ -74,7 +74,7 @@ func (h *Handler) GetCalculation(ctx *gin.Context) {
 	calculations, err := h.Repository.GetCalculation()
 	if err != nil {
 		logrus.Error(err)
-		calculations = []repository.Service{} // пустой массив вместо ошибки
+		calculations = []repository.Service{} // пустой массив для чека ошибок
 	}
 
 	ctx.HTML(http.StatusOK, "calculation.html", gin.H{
