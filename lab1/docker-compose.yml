@@ -1,78 +1,28 @@
-version: '3.7'
+version: '3.8'
 
-# Settings and configurations that are common for all containers
-x-minio-common: &minio-common
-  image: quay.io/minio/minio:RELEASE.2022-10-15T19-57-03Z
-  command: server --console-address ":9001" http://minio{1...4}/data{1...2}
-  environment:
-    MINIO_ACCESS_KEY: minio
-    MINIO_SECRET_KEY: minio124
-  expose:
-    - "9000"
-    - "9001"
-    # environment:
-    # MINIO_ROOT_USER: minioadmin
-    # MINIO_ROOT_PASSWORD: minioadmin
-  healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-    interval: 30s
-    timeout: 20s
-    retries: 3
-
-# starts 4 docker containers running minio server instances.
-# using nginx reverse proxy, load balancing, you can access
-# it through port 9000.
 services:
-  minio1:
-    <<: *minio-common
-    hostname: minio1
-    volumes:
-      - data1-1:/data1
-      - data1-2:/data2
-
-  minio2:
-    <<: *minio-common
-    hostname: minio2
-    volumes:
-      - data2-1:/data1
-      - data2-2:/data2
-
-  minio3:
-    <<: *minio-common
-    hostname: minio3
-    volumes:
-      - data3-1:/data1
-      - data3-2:/data2
-
-  minio4:
-    <<: *minio-common
-    hostname: minio4
-    volumes:
-      - data4-1:/data1
-      - data4-2:/data2
-
-  nginx:
-    image: nginx:1.19.2-alpine
-    hostname: nginx
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  postgres:
+    image: postgres:15
+    container_name: lung_capacity_db
+    environment:
+      POSTGRES_DB: lung_capacity_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: md5 # Меняем на md5 вместо trust
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    depends_on:
-      - minio1
-      - minio2
-      - minio3
-      - minio4
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c 'password_encryption=md5' # Форсируем md5
 
-## By default this config uses default local driver,
-## For custom volumes replace with volume driver configuration.
+  adminer:
+    image: adminer
+    container_name: adminer_lung
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+
 volumes:
-  data1-1:
-  data1-2:
-  data2-1:
-  data2-2:
-  data3-1:
-  data3-2:
-  data4-1:
-  data4-2:
+  postgres_data:
