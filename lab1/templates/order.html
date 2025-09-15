@@ -1,0 +1,70 @@
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Мой расчет - Лёгкая Жизнь</title>
+		<link rel="stylesheet" href="/static/styles/order.css" />
+	</head>
+	<body>
+		<header class="header">
+			<div class="header-container">
+				<div class="logo">
+					<a href="/services" class="home-link">
+						<img
+							src="/static/img/lung.png"
+							alt="Лёгкая Жизнь"
+							class="home-icon"
+						/>
+						<span class="logo-text">Домой</span>
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<main class="main-content">
+			<div class="container">
+				<div class="page-header">
+					<h1 class="page-title">Мой расчет ДЖЕЛ</h1>
+				</div>
+
+				<section class="order-section">
+					{{ if .orderServices }}
+					<div class="order-items">
+						{{ range .orderServices }}
+						<div class="order-item">
+							<div class="item-image">
+								<img
+									src="http://localhost:9000/lab1/{{ .Service.Image }}"
+									alt="{{ .Service.Title }}"
+								/>
+							</div>
+							<div class="item-details">
+								<h3>{{ .Service.Title }}</h3>
+								<p>{{ .Service.Description }}</p>
+								<p class="formula">{{ .Service.Formula }}</p>
+							</div>
+							<div class="item-quantity">
+								<span>Количество: {{ .Quantity }}</span>
+							</div>
+						</div>
+						{{ end }}
+					</div>
+
+					<div class="order-actions">
+						<form action="/order/{{ .order.ID }}/delete" method="POST">
+							<button type="submit" class="btn btn-delete">
+								Удалить расчет
+							</button>
+						</form>
+					</div>
+					{{ else }}
+					<div class="empty-order">
+						<p>Ваш расчет пуст</p>
+						<a href="/services" class="btn btn-primary">Выбрать формулы</a>
+					</div>
+					{{ end }}
+				</section>
+			</div>
+		</main>
+	</body>
+</html>
