@@ -1,211 +1,107 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
+	"lab1/internal/app/ds"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Repository struct {
+	db *gorm.DB
 }
 
-func NewRepository() (*Repository, error) {
-	return &Repository{}, nil
-}
-
-type Service struct {
-	ID          int
-	Title       string
-	Description string
-	Formula     string
-	Image       string
-	Category    string
-	Gender      string
-	MinAge      int
-	MaxAge      int
-	Height      string // пока строка
-	Result      string // пока строка
-}
-
-func (r *Repository) GetServices() ([]Service, error) {
-	services := []Service{
-		{
-			ID:          1,
-			Title:       "Мальчики 4-7 лет",
-			Description: "Расчет ДЖЕЛ для мальчиков дошкольного возраста",
-			Formula:     "ДЖЕЛ (л) = (0.043 × Рост) - (0.015 × Возраст) - 2.89",
-			Image:       "boys_4_7.png",
-			Category:    "дети",
-			Gender:      "мужской",
-			MinAge:      4,
-			MaxAge:      7,
-			Height:      "127 см", //
-			Result:      "2.57 л", //
-		},
-		{
-			ID:          2,
-			Title:       "Девочки 4-7 лет",
-			Description: "Расчет ДЖЕЛ для девочек дошкольного возраста",
-			Formula:     "ДЖЕЛ (л) = (0.037 × Рост) - (0.012 × Возраст) - 2.54",
-			Image:       "girls_4_7.png",
-			Category:    "дети",
-			Gender:      "женский",
-			MinAge:      4,
-			MaxAge:      7,
-			Height:      "120 см", //
-			Result:      "1.90 л", //
-		},
-		{
-			ID:          3,
-			Title:       "Мальчики 8-12 лет",
-			Description: "Расчет ДЖЕЛ для мальчиков младшего школьного возраста",
-			Formula:     "ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.60",
-			Image:       "boys_8_12.png",
-			Category:    "дети",
-			Gender:      "мужской",
-			MinAge:      8,
-			MaxAge:      12,
-			Height:      "",
-			Result:      "",
-		},
-		{
-			ID:          4,
-			Title:       "Девочки 8-12 лет",
-			Description: "Расчет ДЖЕЛ для девочек младшего школьного возраста",
-			Formula:     "ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.70",
-			Image:       "girls_8_12.png",
-			Category:    "дети",
-			Gender:      "женский",
-			MinAge:      8,
-			MaxAge:      12,
-			Height:      "",
-			Result:      "",
-		},
-		{
-			ID:          5,
-			Title:       "Юноши 13-17 лет",
-			Description: "Расчет ДЖЕЛ для юношей подросткового возраста",
-			Formula:     "ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 4.20",
-			Image:       "boys_13_17.png",
-			Category:    "подростки",
-			Gender:      "мужской",
-			MinAge:      13,
-			MaxAge:      17,
-			Height:      "",
-			Result:      "",
-		},
-		{
-			ID:          6,
-			Title:       "Девушки 13-17 лет",
-			Description: "Расчет ДЖЕЛ для девушек подросткового возраста",
-			Formula:     "ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 3.20",
-			Image:       "girls_13_17.png",
-			Category:    "подростки",
-			Gender:      "женский",
-			MinAge:      13,
-			MaxAge:      17,
-			Height:      "",
-			Result:      "",
-		},
-		{
-			ID:          7,
-			Title:       "Мужчины 18-60 лет",
-			Description: "Расчет ДЖЕЛ для взрослых мужчин",
-			Formula:     "ДЖЕЛ (л) = (0.052 × Рост) - (0.022 × Возраст) - 3.60",
-			Image:       "men_18_60.png",
-			Category:    "взрослые",
-			Gender:      "мужской",
-			MinAge:      18,
-			MaxAge:      60,
-			Height:      "",
-			Result:      "",
-		},
-		{
-			ID:          8,
-			Title:       "Женщины 18-60 лет",
-			Description: "Расчет ДЖЕЛ для взрослых женщин",
-			Formula:     "ДЖЕЛ (л) = (0.041 × Рост) - (0.018 × Возраст) - 2.69",
-			Image:       "women_18_60.png",
-			Category:    "взрослые",
-			Gender:      "женский",
-			MinAge:      18,
-			MaxAge:      60,
-			Height:      "",
-			Result:      "",
-		},
-		{
-			ID:          9,
-			Title:       "Пожилые 60+ лет",
-			Description: "Расчет ДЖЕЛ для пожилых людей",
-			Formula:     "ДЖЕЛ (л) = (0.044 × Рост) - (0.024 × Возраст) - 2.86",
-			Image:       "elderly_60plus.png",
-			Category:    "пожилые",
-			Gender:      "унисекс",
-			MinAge:      60,
-			MaxAge:      100,
-			Height:      "",
-			Result:      "",
-		},
+func New(dsn string) (*Repository, error) {
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
 	}
 
-	if len(services) == 0 {
-		return nil, fmt.Errorf("массив услуг пустой")
+	return &Repository{
+		db: db,
+	}, nil
+}
+
+// GetServices
+func (r *Repository) GetServices() ([]ds.Service, error) {
+	var services []ds.Service
+	err := r.db.Where("is_active = ?", true).Find(&services).Error
+	if err != nil {
+		return nil, err
 	}
 	return services, nil
 }
 
-func (r *Repository) GetService(id int) (Service, error) {
-	services, err := r.GetServices()
+// GetServiceByID
+func (r *Repository) GetServiceByID(id uint) (ds.Service, error) {
+	var service ds.Service
+	err := r.db.First(&service, id).Error
 	if err != nil {
-		return Service{}, err
+		return ds.Service{}, err
 	}
-
-	for _, service := range services {
-		if service.ID == id {
-			return service, nil
-		}
-	}
-	return Service{}, fmt.Errorf("услуга не найдена")
+	return service, nil
 }
 
-func (r *Repository) GetServicesByTitle(title string) ([]Service, error) {
-	services, err := r.GetServices()
+// GetServicesByTitle
+func (r *Repository) GetServicesByTitle(title string) ([]ds.Service, error) {
+	var services []ds.Service
+	err := r.db.Where("title ILIKE ? AND is_active = ?", "%"+title+"%", true).Find(&services).Error
 	if err != nil {
-		return []Service{}, err
+		return nil, err
 	}
-
-	var result []Service
-	for _, service := range services {
-		if strings.Contains(strings.ToLower(service.Title), strings.ToLower(title)) {
-			result = append(result, service)
-		}
-	}
-	return result, nil
+	return services, nil
 }
 
-func (r *Repository) GetCalculation() ([]Service, error) {
-	services, err := r.GetServices()
-	if err != nil {
-		return []Service{}, err
-	}
-
-	var result []Service
-	for _, service := range services {
-		if service.ID == 1 || service.ID == 2 {
-			result = append(result, service)
-		}
-	}
-
-	if len(result) == 0 {
-		return nil, fmt.Errorf("массив расчетов пустой")
-	}
-
-	return result, nil
+// GetDraftOrder
+func (r *Repository) GetDraftOrder(userID uint) (ds.Order, error) {
+	var order ds.Order
+	err := r.db.Where("user_id = ? AND status = ?", userID, ds.StatusDraft).First(&order).Error
+	return order, err
 }
 
-func (r *Repository) GetCalculationsCount() (int, error) {
-	calculations, err := r.GetCalculation()
-	if err != nil {
-		return 0, err
+// CreateOrder
+func (r *Repository) CreateOrder(userID uint) (ds.Order, error) {
+	order := ds.Order{
+		Status:    ds.StatusDraft,
+		UserID:    userID,
+		CreatedAt: time.Now(),
 	}
-	return len(calculations), nil
+
+	err := r.db.Create(&order).Error
+	return order, err
+}
+
+// AddServiceToOrder добавляет услугу в заявку
+func (r *Repository) AddServiceToOrder(orderID, serviceID uint) error {
+	orderService := ds.OrderService{
+		OrderID:   orderID,
+		ServiceID: serviceID,
+		Quantity:  1,
+	}
+
+	return r.db.Create(&orderService).Error
+}
+
+// GetOrderServices возвращает услуги в заявке
+func (r *Repository) GetOrderServices(orderID uint) ([]ds.OrderService, error) {
+	var orderServices []ds.OrderService
+	err := r.db.Preload("Service").Where("order_id = ?", orderID).Find(&orderServices).Error
+	return orderServices, err
+}
+
+// GetOrdersCount возвращает количество расчетов (для иконки корзины)
+func (r *Repository) GetOrdersCount(userID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&ds.Order{}).
+		Where("user_id = ? AND status = ?", userID, ds.StatusDraft).
+		Count(&count).Error
+	return count, err
+}
+
+// DeleteOrderLogical логически удаляет заявку (меняет статус на "удалён")
+func (r *Repository) DeleteOrderLogical(orderID uint) error {
+	return r.db.Model(&ds.Order{}).
+		Where("id = ?", orderID).
+		Update("status", ds.StatusDeleted).Error
 }
