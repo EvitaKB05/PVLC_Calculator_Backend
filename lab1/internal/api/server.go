@@ -14,7 +14,7 @@ func StartServer() {
 
 	repo, err := repository.NewRepository()
 	if err != nil {
-		logrus.Error("Ошибка инициализации репозитория")
+		logrus.Fatal("Ошибка инициализации репозитория: ", err)
 	}
 
 	handler := handler.NewHandler(repo)
