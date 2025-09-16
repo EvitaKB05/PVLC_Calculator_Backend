@@ -32,14 +32,6 @@
 					</h1>
 				</div>
 
-				<!-- Поиск врача -->
-				<section class="search-section">
-					<div class="search-group">
-						<input type="text" placeholder="ФИО Врача" class="search-input" />
-						<button type="button" class="search-button">Сохранить</button>
-					</div>
-				</section>
-
 				<!-- Выбранные категории -->
 				<section class="selected-categories">
 					<h2 class="section-title">Выбранные категории</h2>
@@ -71,32 +63,7 @@
 												>{{ .MinAge }}-{{ .MaxAge }} лет</span
 											>
 										</div>
-										<div class="parameter-group">
-											<span class="parameter-label">Рост:</span>
-											<input
-												type="text"
-												class="height-input"
-												value="{{ .Height }}"
-												readonly
-											/>
-										</div>
-										<!-- Результат ДЖЕЛ -->
-										<div class="parameter-group">
-											<span class="parameter-label">Результат ДЖЕЛ:</span>
-											<input
-												type="text"
-												class="result-input"
-												value="{{ .Result }}"
-												readonly
-											/>
-										</div>
 									</div>
-									<!-- Формула и описание 
-									<div class="formula-container">
-										<div class="formula-header">Формула расчёта:</div>
-										<div class="formula-text">{{ .Formula }}</div>
-										<div class="formula-description">{{ .Description }}</div>
-									</div> -->
 								</div>
 							</div>
 						</div>
@@ -108,17 +75,13 @@
 				<section class="action-buttons">
 					<div class="buttons-container">
 						<button type="button" class="btn btn-calculate">Расчитать</button>
-						<button type="button" class="btn btn-delete">Удалить</button>
+						<!-- теперь не болванка -->
+						<form action="/calculation/delete" method="POST">
+							<button type="submit" class="btn btn-delete">Удалить</button>
+						</form>
 					</div>
 				</section>
 			</div>
 		</main>
-
-		<!-- Футер 
-		<footer class="footer">
-			<div class="container">
-				<p>&copy; 2025 Лёгкая Жизнь. Кудабаева Эвита ИУ5-52Б.</p>
-			</div>
-		</footer> -->
 	</body>
 </html>

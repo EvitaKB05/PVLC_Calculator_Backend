@@ -66,13 +66,16 @@
 									<a href="/service/{{ .ID }}" class="btn btn-details">
 										Подробнее
 									</a>
-									<button
-										type="button"
-										class="btn btn-select"
-										onclick="return false;"
+									<!-- теперь не болванка а форма -->
+									<form
+										action="/service/{{ .ID }}/add"
+										method="POST"
+										style="display: inline"
 									>
-										Добавить
-									</button>
+										<button type="submit" class="btn btn-select">
+											Добавить
+										</button>
+									</form>
 								</div>
 							</div>
 						</div>
@@ -89,12 +92,5 @@
 			<span class="notification-badge">{{ .calculationsCount }}</span>
 			{{ end }}
 		</a>
-
-		<!-- Футер --
-		<footer class="footer">
-			<div class="container">
-				<p>&copy; 2025 Лёгкая Жизнь. Кудабаева Эвита ИУ5-52Б.</p>
-			</div>
-		</footer> -->
 	</body>
 </html>

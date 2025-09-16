@@ -25,11 +25,15 @@ func StartServer() {
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./resources")
 
-	// маршруты запросы
+	// маршруты GET запросы
 	r.GET("/", handler.GetServices)
 	r.GET("/services", handler.GetServices)
 	r.GET("/service/:id", handler.GetService)
 	r.GET("/calculation", handler.GetCalculation)
+
+	// маршруты POST запросы
+	r.POST("/service/:id/add", handler.AddToCart)
+	r.POST("/calculation/delete", handler.DeleteCart)
 
 	r.Run()
 	log.Println("Server down")

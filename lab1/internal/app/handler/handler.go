@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ServiceView - структура для отображения в шаблоне
+// вью - структура для отображения в шаблоне
 type ServiceView struct {
 	ID          uint
 	Title       string
@@ -22,8 +22,8 @@ type ServiceView struct {
 	Gender      string
 	MinAge      int
 	MaxAge      int
-	Height      string // временно оставляем как было
-	Result      string // временно оставляем как было
+	Height      string
+	Result      string
 }
 
 type Handler struct {
@@ -36,20 +36,20 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-// convertToView преобразует ds.Calculation в ServiceView для шаблона
+// конвертим вью в шаблон
 func convertToView(calc ds.Calculation) ServiceView {
 	return ServiceView{
 		ID:          calc.ID,
 		Title:       calc.Title,
 		Description: calc.Description,
 		Formula:     calc.Formula,
-		Image:       calc.ImageURL, // Маппим ImageURL -> Image
+		Image:       calc.ImageURL,
 		Category:    calc.Category,
 		Gender:      calc.Gender,
 		MinAge:      calc.MinAge,
 		MaxAge:      calc.MaxAge,
-		Height:      "", // Пока оставляем пустым
-		Result:      "", // Пока оставляем пустым
+		Height:      "",
+		Result:      "",
 	}
 }
 
@@ -74,20 +74,24 @@ func (h *Handler) GetServices(ctx *gin.Context) {
 		}
 	}
 
-	// Конвертируем для шаблона
+	// обработчик обновы количества элементов в корзинке-папке
+	count, err := h.Repository.GetCalculationsCount()
+	if err != nil {
+		logrus.Error("Error getting cart count:", err)
+		count = 0
+	}
+
+	// конверт шаблон
 	var services []ServiceView
 	for _, calc := range calculations {
 		services = append(services, convertToView(calc))
 	}
 
-	// Временная заглушка - потом реализуем настоящий счетчик
-	calculationsCount := 0
-
 	ctx.HTML(http.StatusOK, "services.html", gin.H{
 		"time":              time.Now().Format("15:04:05"),
-		"services":          services, // Теперь передаем преобразованные данные
+		"services":          services,
 		"query":             searchQuery,
-		"calculationsCount": calculationsCount,
+		"calculationsCount": count, // актуально кол-во передача
 	})
 }
 
@@ -108,19 +112,46 @@ func (h *Handler) GetService(ctx *gin.Context) {
 		return
 	}
 
-	// Конвертируем для шаблона
+	// гет элементов в корзине
+	count, err := h.Repository.GetCalculationsCount()
+	if err != nil {
+		logrus.Error("Error getting cart count:", err)
+		count = 0
+	}
+
+	// конверт шаблон
 	service := convertToView(calculation)
 
 	ctx.HTML(http.StatusOK, "service.html", gin.H{
 		"service":           service,
-		"calculationsCount": 0,
+		"calculationsCount": count,
 	})
 }
 
-// Временная заглушка - потом реализуем
 func (h *Handler) GetCalculation(ctx *gin.Context) {
+	// расчеты из корзины
+	calculations, err := h.Repository.GetCalculation()
+	if err != nil {
+		logrus.Error(err)
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка загрузки корзины"})
+		return
+	}
+
+	// гет кол-во
+	count, err := h.Repository.GetCalculationsCount()
+	if err != nil {
+		logrus.Error("Error getting cart count:", err)
+		count = 0
+	}
+
+	// конверт
+	var services []ServiceView
+	for _, calc := range calculations {
+		services = append(services, convertToView(calc))
+	}
+
 	ctx.HTML(http.StatusOK, "calculation.html", gin.H{
-		"calculations":      []ServiceView{},
-		"calculationsCount": 0,
+		"calculations":      services,
+		"calculationsCount": count,
 	})
 }
