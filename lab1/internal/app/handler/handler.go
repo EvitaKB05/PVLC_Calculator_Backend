@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"lab1/internal/app/ds"
 	"lab1/internal/app/repository"
 	"net/http"
@@ -24,6 +25,7 @@ type ServiceView struct {
 	MaxAge      int
 	Height      string
 	Result      string
+	Comment     string
 }
 
 type Handler struct {
@@ -129,8 +131,8 @@ func (h *Handler) GetService(ctx *gin.Context) {
 }
 
 func (h *Handler) GetCalculation(ctx *gin.Context) {
-	// расчеты из корзины
-	calculations, err := h.Repository.GetCalculation()
+	// гет расчеты
+	calculations, err := h.Repository.GetCalculationWithHeight()
 	if err != nil {
 		logrus.Error(err)
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка загрузки корзины"})
@@ -147,7 +149,9 @@ func (h *Handler) GetCalculation(ctx *gin.Context) {
 	// конверт
 	var services []ServiceView
 	for _, calc := range calculations {
-		services = append(services, convertToView(calc))
+		service := convertToView(calc.Calculation)
+		service.Height = fmt.Sprintf("%.1f", calc.InputHeight) // рост
+		services = append(services, service)
 	}
 
 	ctx.HTML(http.StatusOK, "calculation.html", gin.H{

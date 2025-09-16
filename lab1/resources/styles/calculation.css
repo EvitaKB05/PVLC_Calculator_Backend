@@ -224,7 +224,46 @@ body {
 	align-items: baseline;
 	gap: 0.5rem;
 }
+/* рост стили */
+.height-input {
+	padding: 0.4rem 0.6rem;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	font-size: 0.95rem;
+	width: 100px;
+	color: #333;
+	background: #fff;
+	text-align: center;
+	height: auto;
+	line-height: normal;
+	transition: border-color 0.3s ease;
+}
 
+.height-input:focus {
+	outline: none;
+	border-color: #00a6ca;
+	box-shadow: 0 0 0 2px rgba(0, 166, 202, 0.2);
+}
+
+.height-input:hover {
+	border-color: #bbb;
+}
+
+/* стили для поля результата */
+.result-input {
+	padding: 0.4rem 0.6rem;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	font-size: 0.95rem;
+	width: 100px;
+	color: #666;
+	background: #f8f9fa;
+	text-align: center;
+	font-weight: bold;
+	color: #00a6ca;
+	height: auto;
+	line-height: normal;
+}
 .parameter-label {
 	font-weight: 600;
 	color: #333;

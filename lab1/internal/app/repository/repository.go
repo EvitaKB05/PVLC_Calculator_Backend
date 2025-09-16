@@ -143,6 +143,31 @@ func (r *Repository) GetCalculation() ([]ds.Calculation, error) {
 	return calculations, nil
 }
 
+// с параметром роста
+func (r *Repository) GetCalculationWithHeight() ([]ds.CalculationWithHeight, error) {
+	// найти черновик
+	var card ds.MedicalCard
+	err := r.db.Where("status = ?", ds.MedicalCardStatusDraft).First(&card).Error
+	if err != nil {
+		// нет черновика - возвращаем пустой массив
+		return []ds.CalculationWithHeight{}, nil
+	}
+
+	// гет расчеты
+	var calculations []ds.CalculationWithHeight
+	err = r.db.Table("calculations c").
+		Select("c.*, cc.input_height").
+		Joins("JOIN card_calculations cc ON c.id = cc.calculation_id").
+		Where("cc.medical_card_id = ?", card.ID).
+		Scan(&calculations).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return calculations, nil
+}
+
 // удаляем апдейтом ненапрямую
 func (r *Repository) DeleteDraftCard() error {
 	// !!!!!

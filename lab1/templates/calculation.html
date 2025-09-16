@@ -63,6 +63,29 @@
 												>{{ .MinAge }}-{{ .MaxAge }} лет</span
 											>
 										</div>
+										<!-- параметр рост-->
+										<div class="parameter-group">
+											<span class="parameter-label">Рост:</span>
+											<input
+												type="number"
+												class="height-input"
+												value="{{ .Height }}"
+												placeholder="см"
+												min="50"
+												max="250"
+												step="0.1"
+											/>
+										</div>
+										<!-- результат ДЖЕЛ -->
+										<div class="parameter-group">
+											<span class="parameter-label">Результат ДЖЕЛ:</span>
+											<input
+												type="text"
+												class="result-input"
+												value="0.0 Л"
+												readonly
+											/>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -71,11 +94,10 @@
 					</div>
 				</section>
 
-				<!-- Кнопки действий -->
+				<!-- кнопки действий -->
 				<section class="action-buttons">
 					<div class="buttons-container">
-						<button type="button" class="btn btn-calculate">Расчитать</button>
-						<!-- теперь не болванка -->
+						<!--<button type="button" class="btn btn-calculate">Расчитать</button> -->
 						<form action="/calculation/delete" method="POST">
 							<button type="submit" class="btn btn-delete">Удалить</button>
 						</form>

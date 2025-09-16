@@ -12,3 +12,9 @@ type Calculation struct {
 	MaxAge      int    `gorm:"not null"`
 	IsActive    bool   `gorm:"default:true"`
 }
+
+// рост +
+type CalculationWithHeight struct {
+	Calculation
+	InputHeight float64 `json:"input_height"`
+}
