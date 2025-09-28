@@ -54,7 +54,8 @@ func convertToView(calc ds.Calculation) ServiceView {
 	}
 }
 
-func (h *Handler) GetServices(ctx *gin.Context) {
+// ПЕРЕИМЕНОВАНО: GetServices -> GetDjelPatients
+func (h *Handler) GetDjelPatients(ctx *gin.Context) {
 	var calculations []ds.Calculation
 	var err error
 
@@ -95,7 +96,8 @@ func (h *Handler) GetServices(ctx *gin.Context) {
 		services = append(services, convertToView(calc))
 	}
 
-	ctx.HTML(http.StatusOK, "services.html", gin.H{
+	// ПЕРЕИМЕНОВАНО: services.html -> djel_patients.html
+	ctx.HTML(http.StatusOK, "djel_patients.html", gin.H{
 		"time":              time.Now().Format("15:04:05"),
 		"services":          services,
 		"query":             searchQuery,
@@ -104,7 +106,8 @@ func (h *Handler) GetServices(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) GetService(ctx *gin.Context) {
+// ПЕРЕИМЕНОВАНО: GetService -> GetDjelPatient
+func (h *Handler) GetDjelPatient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
 	id, err := strconv.Atoi(idStr)
@@ -138,16 +141,16 @@ func (h *Handler) GetService(ctx *gin.Context) {
 	// конверт шаблон
 	service := convertToView(calculation)
 
-	ctx.HTML(http.StatusOK, "service.html", gin.H{
+	// ПЕРЕИМЕНОВАНО: service.html -> djel_patient.html
+	ctx.HTML(http.StatusOK, "djel_patient.html", gin.H{
 		"service":           service,
 		"calculationsCount": count,
 		"draftCardID":       draftCardID, // ДОБАВЛЯЕМ ID ЧЕРНОВИКА
 	})
 }
 
-// fix 3 start!
-// ИЗМЕНЯЕМ МЕТОД - ДОБАВЛЯЕМ ПАРАМЕТР ID
-func (h *Handler) GetCalculation(ctx *gin.Context) {
+// ПЕРЕИМЕНОВАНО: GetCalculation -> GetDjelRequest
+func (h *Handler) GetDjelRequest(ctx *gin.Context) {
 	// получаем ID из URL
 	idStr := ctx.Param("id")
 	cardID, err := strconv.Atoi(idStr)
@@ -171,7 +174,7 @@ func (h *Handler) GetCalculation(ctx *gin.Context) {
 		ctx.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Карта не найдена"})
 		return
 	}
-	// fix 3 end
+
 	// корзина по ID карты
 	calculations, err := h.Repository.GetCalculationByCardID(uint(cardID))
 	if err != nil {
@@ -203,11 +206,12 @@ func (h *Handler) GetCalculation(ctx *gin.Context) {
 		services = append(services, convertToView(calc))
 	}
 
-	ctx.HTML(http.StatusOK, "calculation.html", gin.H{
+	// ПЕРЕИМЕНОВАНО: calculation.html -> djel_request.html
+	ctx.HTML(http.StatusOK, "djel_request.html", gin.H{
 		"calculations":      services,
 		"calculationsCount": count,
 		"doctors":           doctors,       //
 		"currentDoctor":     currentDoctor, //
-		"cardID":            cardID,        //
+		"cardID":            cardID,        // ДОБАВЛЯЕМ ID КАРТЫ В ШАБЛОН
 	})
 }

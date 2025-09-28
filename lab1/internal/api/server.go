@@ -26,14 +26,14 @@ func StartServer() {
 	r.Static("/static", "./resources")
 
 	// маршруты GET запросы
-	r.GET("/", handler.GetServices)
-	r.GET("/services", handler.GetServices)
-	r.GET("/service/:id", handler.GetService)
-	r.GET("/calculation/:id", handler.GetCalculation) // ИЗМЕНЯЕМ НА С ID
+	r.GET("/", handler.GetDjelPatients)
+	r.GET("/djel_patients", handler.GetDjelPatients)
+	r.GET("/djel_patient/:id", handler.GetDjelPatient)
+	r.GET("/djel_request/:id", handler.GetDjelRequest)
 
 	// маршруты POST запросы
-	r.POST("/service/:id/add", handler.AddToCart)     // Добавление в корзину
-	r.POST("/calculation/delete", handler.DeleteCart) // Удаление корзины
+	r.POST("/djel_patient/:id/add", handler.AddToCart)
+	r.POST("/djel_request/delete", handler.DeleteCart)
 
 	r.Run()
 	log.Println("Server down")

@@ -3,14 +3,14 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Лёгкая Жизнь - Расчет ДЖЕЛ</title>
-		<link rel="stylesheet" href="/static/styles/services.css" />
+		<link rel="stylesheet" href="/static/styles/djel_patients.css" />
 	</head>
 	<body>
 		<!-- Хедер странички -->
 		<header class="header">
 			<div class="header-container">
 				<div class="logo">
-					<a href="/services" class="home-link">
+					<a href="/djel_patients" class="home-link">
 						<img
 							src="/static/img/lung.png"
 							alt="Лёгкая Жизнь"
@@ -34,7 +34,7 @@
 
 				<!-- Поисковая строка -->
 				<section class="search-section">
-					<form action="/services" method="GET" class="search-form">
+					<form action="/djel_patients" method="GET" class="search-form">
 						<div class="search-group">
 							<input
 								type="text"
@@ -63,12 +63,11 @@
 							<div class="card-content">
 								<h3 class="card-title">{{ .Title }}</h3>
 								<div class="card-buttons">
-									<a href="/service/{{ .ID }}" class="btn btn-details">
+									<a href="/djel_patient/{{ .ID }}" class="btn btn-details">
 										Подробнее
 									</a>
-									<!-- НЕ БОЛВАНКА -->
 									<form
-										action="/service/{{ .ID }}/add"
+										action="/djel_patient/{{ .ID }}/add"
 										method="POST"
 										style="display: inline"
 									>
@@ -84,12 +83,11 @@
 				</section>
 			</div>
 		</main>
-		<!-- ПРАВКА 1 НАЧАЛО -->
+
 		<!-- Иконка папки в левом нижнем углу -->
 		{{ if .calculationsCount }}
 		<!-- ЕСЛИ КОРЗИНА НЕ ПУСТАЯ - ДЕЛАЕМ ССЫЛКУ АКТИВНОЙ -->
-		<a href="/calculation/{{ .draftCardID }}" class="folder-icon">
-			<!-- ИЗМЕНЯЕМ ССЫЛКУ -->
+		<a href="/djel_request/{{ .draftCardID }}" class="folder-icon">
 			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
 			<span class="notification-badge">{{ .calculationsCount }}</span>
 		</a>
@@ -99,6 +97,5 @@
 			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
 		</div>
 		{{ end }}
-		<!-- ПРАВКА 1 КОНЕЦ -->
 	</body>
 </html>

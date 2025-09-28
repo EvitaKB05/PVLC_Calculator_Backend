@@ -67,7 +67,8 @@ func (h *Handler) AddToCart(ctx *gin.Context) {
 	}
 
 	// обновление данных
-	ctx.HTML(http.StatusOK, "services.html", gin.H{
+	// ПЕРЕИМЕНОВАНО: services.html -> djel_patients.html
+	ctx.HTML(http.StatusOK, "djel_patients.html", gin.H{
 		"time":              ctx.Query("time"), // сохраняем время
 		"services":          services,
 		"query":             ctx.Query("query"), // сохраняем поисковый запрос
@@ -86,5 +87,5 @@ func (h *Handler) DeleteCart(ctx *gin.Context) {
 	}
 
 	// редирект на главную
-	ctx.Redirect(http.StatusFound, "/services")
+	ctx.Redirect(http.StatusFound, "/djel_patients") // ПЕРЕИМЕНОВАНО
 }
