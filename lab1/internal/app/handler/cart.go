@@ -45,6 +45,13 @@ func (h *Handler) AddToCart(ctx *gin.Context) {
 		count = 0
 	}
 
+	// получаем ID черновика для ссылки
+	draftCardID, err := h.Repository.GetDraftCardID()
+	if err != nil {
+		logrus.Error("Error getting draft card ID:", err)
+		draftCardID = 0
+	}
+
 	// список услуг
 	calculations, err := h.Repository.GetServices()
 	if err != nil {
@@ -65,6 +72,7 @@ func (h *Handler) AddToCart(ctx *gin.Context) {
 		"services":          services,
 		"query":             ctx.Query("query"), // сохраняем поисковый запрос
 		"calculationsCount": count,              // обновляем счетчик
+		"draftCardID":       draftCardID,        // ДОБАВЛЯЕМ ID ЧЕРНОВИКА
 	})
 }
 

@@ -29,11 +29,11 @@ func StartServer() {
 	r.GET("/", handler.GetServices)
 	r.GET("/services", handler.GetServices)
 	r.GET("/service/:id", handler.GetService)
-	r.GET("/calculation", handler.GetCalculation)
+	r.GET("/calculation/:id", handler.GetCalculation) // ИЗМЕНЯЕМ НА С ID
 
 	// маршруты POST запросы
-	r.POST("/service/:id/add", handler.AddToCart)
-	r.POST("/calculation/delete", handler.DeleteCart)
+	r.POST("/service/:id/add", handler.AddToCart)     // Добавление в корзину
+	r.POST("/calculation/delete", handler.DeleteCart) // Удаление корзины
 
 	r.Run()
 	log.Println("Server down")

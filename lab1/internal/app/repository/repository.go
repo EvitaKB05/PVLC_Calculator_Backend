@@ -77,6 +77,27 @@ func (r *Repository) GetOrCreateDraftCard(userID uint) (*ds.MedicalCard, error) 
 	return &card, nil
 }
 
+// получаем ID черновика
+func (r *Repository) GetDraftCardID() (uint, error) {
+	var card ds.MedicalCard
+	err := r.db.Where("status = ?", ds.MedicalCardStatusDraft).First(&card).Error
+	if err != nil {
+		return 0, err
+	}
+	return card.ID, nil
+}
+
+// FIX 3: проверяем существование карты (не удалена и существует)
+func (r *Repository) CheckCardExists(cardID uint) (bool, error) {
+	var card ds.MedicalCard
+	err := r.db.Where("id = ? AND status != ?", cardID, ds.MedicalCardStatusDeleted).First(&card).Error
+	if err != nil {
+		// если карта не найдена или удалена - возвращаем false
+		return false, nil
+	}
+	return true, nil
+}
+
 // получаем список доступных врачей
 func (r *Repository) GetAvailableDoctors() []string {
 	// возвращаем список врачей (можно потом брать из отдельной таблицы)
@@ -141,7 +162,7 @@ func (r *Repository) GetCalculationsCount() (int, error) {
 	return int(count), nil
 }
 
-// гет расчёты
+// гет расчёты (старый метод для обратной совместимости)
 func (r *Repository) GetCalculation() ([]ds.Calculation, error) {
 	// найти (майонез) черновик
 	var card ds.MedicalCard
@@ -156,6 +177,30 @@ func (r *Repository) GetCalculation() ([]ds.Calculation, error) {
 	err = r.db.Table("calculations").
 		Joins("JOIN card_calculations ON calculations.id = card_calculations.calculation_id").
 		Where("card_calculations.medical_card_id = ?", card.ID).
+		Find(&calculations).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return calculations, nil
+}
+
+// FIX 3: гет расчёты по ID карты
+func (r *Repository) GetCalculationByCardID(cardID uint) ([]ds.Calculation, error) {
+	// проверяем существование карты
+	var card ds.MedicalCard
+	err := r.db.Where("id = ? AND status = ?", cardID, ds.MedicalCardStatusDraft).First(&card).Error
+	if err != nil {
+		// карта не найдена или не черновик
+		return []ds.Calculation{}, nil
+	}
+
+	// получаем все расчеты, связанные с этой картой
+	var calculations []ds.Calculation
+	err = r.db.Table("calculations").
+		Joins("JOIN card_calculations ON calculations.id = card_calculations.calculation_id").
+		Where("card_calculations.medical_card_id = ?", cardID).
 		Find(&calculations).Error
 
 	if err != nil {

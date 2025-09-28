@@ -82,6 +82,13 @@ func (h *Handler) GetServices(ctx *gin.Context) {
 		count = 0
 	}
 
+	// получаем ID черновика для ссылки
+	draftCardID, err := h.Repository.GetDraftCardID()
+	if err != nil {
+		logrus.Error("Error getting draft card ID:", err)
+		draftCardID = 0
+	}
+
 	// конверт шаблон
 	var services []ServiceView
 	for _, calc := range calculations {
@@ -92,7 +99,8 @@ func (h *Handler) GetServices(ctx *gin.Context) {
 		"time":              time.Now().Format("15:04:05"),
 		"services":          services,
 		"query":             searchQuery,
-		"calculationsCount": count, // актуально кол-во передача
+		"calculationsCount": count,       // актуально кол-во передача
+		"draftCardID":       draftCardID, // ДОБАВЛЯЕМ ID ЧЕРНОВИКА
 	})
 }
 
@@ -120,18 +128,52 @@ func (h *Handler) GetService(ctx *gin.Context) {
 		count = 0
 	}
 
+	// получаем ID черновика для ссылки
+	draftCardID, err := h.Repository.GetDraftCardID()
+	if err != nil {
+		logrus.Error("Error getting draft card ID:", err)
+		draftCardID = 0
+	}
+
 	// конверт шаблон
 	service := convertToView(calculation)
 
 	ctx.HTML(http.StatusOK, "service.html", gin.H{
 		"service":           service,
 		"calculationsCount": count,
+		"draftCardID":       draftCardID, // ДОБАВЛЯЕМ ID ЧЕРНОВИКА
 	})
 }
 
+// fix 3 start!
+// ИЗМЕНЯЕМ МЕТОД - ДОБАВЛЯЕМ ПАРАМЕТР ID
 func (h *Handler) GetCalculation(ctx *gin.Context) {
-	// корзина
-	calculations, err := h.Repository.GetCalculation()
+	// получаем ID из URL
+	idStr := ctx.Param("id")
+	cardID, err := strconv.Atoi(idStr)
+	if err != nil {
+		logrus.Error("Invalid card ID:", err)
+		ctx.HTML(http.StatusBadRequest, "error.html", gin.H{"error": "Неверный ID карты"})
+		return
+	}
+
+	// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ КАРТЫ
+	exists, err := h.Repository.CheckCardExists(uint(cardID))
+	if err != nil {
+		logrus.Error("Error checking card existence:", err)
+		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка проверки карты"})
+		return
+	}
+
+	// ЕСЛИ КАРТА НЕ СУЩЕСТВУЕТ ИЛИ УДАЛЕНА - 404
+	if !exists {
+		logrus.Warnf("Card with ID %d not found or deleted", cardID)
+		ctx.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Карта не найдена"})
+		return
+	}
+	// fix 3 end
+	// корзина по ID карты
+	calculations, err := h.Repository.GetCalculationByCardID(uint(cardID))
 	if err != nil {
 		logrus.Error(err)
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка загрузки корзины"})
@@ -166,5 +208,6 @@ func (h *Handler) GetCalculation(ctx *gin.Context) {
 		"calculationsCount": count,
 		"doctors":           doctors,       //
 		"currentDoctor":     currentDoctor, //
+		"cardID":            cardID,        //
 	})
 }
