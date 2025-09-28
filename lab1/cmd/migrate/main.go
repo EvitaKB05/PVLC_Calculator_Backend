@@ -2,7 +2,7 @@ package main
 
 import (
 	"lab1/internal/app/ds"
-	"lab1/internal/app/dsn" // не забудь!
+	"lab1/internal/app/dsn"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -10,19 +10,19 @@ import (
 )
 
 func main() {
-	// подгружаем из энвиромент
+	// Загружаем переменные окружения из файла .env
 	_ = godotenv.Load()
 
-	// гет стринг из энв
+	// Получаем DSN строку из переменных окружения
 	dsnString := dsn.FromEnv()
 
-	// подключение к бдшке
+	// Подключаемся к БД
 	db, err := gorm.Open(postgres.Open(dsnString), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database: " + err.Error())
 	}
 
-	// создаем миграции
+	// Выполняем миграции (создание таблиц)
 	err = db.AutoMigrate(
 		&ds.User{},
 		&ds.Calculation{},

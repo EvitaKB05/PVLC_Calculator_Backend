@@ -32,6 +32,30 @@
 					</h1>
 				</div>
 
+				<!-- Поле выбора врача -->
+				<section class="search-section">
+					<div class="search-group">
+						<!-- ЗАМЕНЯЕМ ОБЫЧНОЕ ПОЛЕ ВВОДА НА SELECT С ВОЗМОЖНОСТЬЮ РУЧНОГО ВВОДА -->
+						<input
+							list="doctors-list"
+							class="search-input"
+							placeholder="ФИО Врача"
+							value="{{ .currentDoctor }}"
+						/>
+						<datalist id="doctors-list">
+							{{ range .doctors }}
+							<option value="{{ . }}">{{ end }}</option>
+						</datalist>
+
+						<!-- КНОПКУ "Сохранить" КОММЕНТИРУЕМ, НО ОСТАВЛЯЕМ -->
+						<!--
+						<button type="button" class="search-button">Сохранить</button>
+						-->
+						<div style="width: 130px"></div>
+						<!-- Заглушка для выравнивания -->
+					</div>
+				</section>
+
 				<!-- Выбранные категории -->
 				<section class="selected-categories">
 					<h2 class="section-title">Выбранные категории</h2>
@@ -63,26 +87,26 @@
 												>{{ .MinAge }}-{{ .MaxAge }} лет</span
 											>
 										</div>
-										<!-- параметр рост-->
+										<!-- ДОБАВЛЯЕМ ПОЛЕ ДЛЯ ВВОДА РОСТА -->
 										<div class="parameter-group">
 											<span class="parameter-label">Рост:</span>
 											<input
 												type="number"
 												class="height-input"
-												value="{{ .Height }}"
 												placeholder="см"
 												min="50"
 												max="250"
-												step="0.1"
+												value=""
 											/>
 										</div>
-										<!-- результат ДЖЕЛ -->
+										<!-- Результат ДЖЕЛ (пока заглушка) -->
 										<div class="parameter-group">
 											<span class="parameter-label">Результат ДЖЕЛ:</span>
 											<input
 												type="text"
 												class="result-input"
-												value="0.0 Л"
+												value=""
+												placeholder="л"
 												readonly
 											/>
 										</div>
@@ -94,10 +118,11 @@
 					</div>
 				</section>
 
-				<!-- кнопки действий -->
+				<!-- Кнопки действий -->
 				<section class="action-buttons">
 					<div class="buttons-container">
 						<!--<button type="button" class="btn btn-calculate">Расчитать</button> -->
+						<!-- ИЗМЕНЯЕМ КНОПКУ "Удалить" на форму -->
 						<form action="/calculation/delete" method="POST">
 							<button type="submit" class="btn btn-delete">Удалить</button>
 						</form>

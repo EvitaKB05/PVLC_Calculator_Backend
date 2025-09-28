@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"lab1/internal/app/ds"
 	"lab1/internal/app/repository"
 	"net/http"
@@ -131,31 +130,41 @@ func (h *Handler) GetService(ctx *gin.Context) {
 }
 
 func (h *Handler) GetCalculation(ctx *gin.Context) {
-	// гет расчеты
-	calculations, err := h.Repository.GetCalculationWithHeight()
+	// корзина
+	calculations, err := h.Repository.GetCalculation()
 	if err != nil {
 		logrus.Error(err)
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка загрузки корзины"})
 		return
 	}
 
-	// гет кол-во
+	// элементы
 	count, err := h.Repository.GetCalculationsCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
 		count = 0
 	}
 
-	// конверт
+	// фри врачи
+	doctors := h.Repository.GetAvailableDoctors()
+
+	// текущий врач
+	currentDoctor, err := h.Repository.GetCurrentDoctor()
+	if err != nil {
+		logrus.Error("Error getting current doctor:", err)
+		currentDoctor = "Иванов И.И."
+	}
+
+	// темплейт конверт
 	var services []ServiceView
 	for _, calc := range calculations {
-		service := convertToView(calc.Calculation)
-		service.Height = fmt.Sprintf("%.1f", calc.InputHeight) // рост
-		services = append(services, service)
+		services = append(services, convertToView(calc))
 	}
 
 	ctx.HTML(http.StatusOK, "calculation.html", gin.H{
 		"calculations":      services,
 		"calculationsCount": count,
+		"doctors":           doctors,       //
+		"currentDoctor":     currentDoctor, //
 	})
 }

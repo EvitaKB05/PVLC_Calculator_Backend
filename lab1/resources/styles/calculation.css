@@ -111,6 +111,17 @@ body {
 	border-color: #00a6ca;
 }
 
+/* Стили для datalist (выпадающего списка) */
+.search-input:focus-within {
+	border-color: #00a6ca;
+}
+
+/* Заглушка для выравнивания (вместо закомментированной кнопки) */
+.search-group div {
+	width: 130px;
+	height: 1px; /* Невидимая заглушка */
+}
+
 .search-button {
 	padding: 1rem 2rem;
 	background: #00a6ca;

@@ -53,18 +53,19 @@ func (r *Repository) GetService(id int) (ds.Calculation, error) {
 	return calculation, nil
 }
 
-// найти создать черновик
+// находим или создаем черновик для пользователя
 func (r *Repository) GetOrCreateDraftCard(userID uint) (*ds.MedicalCard, error) {
 	var card ds.MedicalCard
 
-	// найти
+	// пытаемся найти существующий черновик
 	err := r.db.Where("status = ?", ds.MedicalCardStatusDraft).First(&card).Error
 
 	if err != nil {
-		// создать
+		// если черновика нет - создаем новый
 		card = ds.MedicalCard{
 			Status:      ds.MedicalCardStatusDraft,
-			PatientName: "Врач", // пока так хз
+			PatientName: "Врач",        // временное значение
+			DoctorName:  "Иванов И.И.", // значение по умолчанию
 		}
 
 		err = r.db.Create(&card).Error
@@ -74,6 +75,27 @@ func (r *Repository) GetOrCreateDraftCard(userID uint) (*ds.MedicalCard, error) 
 	}
 
 	return &card, nil
+}
+
+// получаем список доступных врачей
+func (r *Repository) GetAvailableDoctors() []string {
+	// возвращаем список врачей (можно потом брать из отдельной таблицы)
+	return []string{
+		"Иванов Иван Иванович",
+		"Петрова Анна Сергеевна",
+		"Сидоров Алексей Владимирович",
+	}
+}
+
+// получаем текущего врача для черновика
+func (r *Repository) GetCurrentDoctor() (string, error) {
+	var card ds.MedicalCard
+	err := r.db.Where("status = ?", ds.MedicalCardStatusDraft).First(&card).Error
+	if err != nil {
+		// если черновика нет - возвращаем значение по умолчанию
+		return "Иванов И.И.", nil
+	}
+	return card.DoctorName, nil
 }
 
 // добавить расчёт в медкарту
@@ -168,7 +190,7 @@ func (r *Repository) GetCalculationWithHeight() ([]ds.CalculationWithHeight, err
 	return calculations, nil
 }
 
-// удаляем апдейтом ненапрямую
+// удаляем апдейтом ненапрямую курсорчик
 func (r *Repository) DeleteDraftCard() error {
 	// !!!!!
 	return r.db.Exec("UPDATE medical_cards SET status = ? WHERE status = ?",

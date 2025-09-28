@@ -66,7 +66,7 @@
 									<a href="/service/{{ .ID }}" class="btn btn-details">
 										Подробнее
 									</a>
-									<!-- теперь не болванка а форма -->
+									<!-- НЕ БОЛВАНКА -->
 									<form
 										action="/service/{{ .ID }}/add"
 										method="POST"
@@ -84,13 +84,20 @@
 				</section>
 			</div>
 		</main>
-
-		<!-- иконка папки -->
-		<a href="/calculation" class="folder-icon">
+		<!-- ПРАВКА 1 НАЧАЛО -->
+		<!-- Иконка папки в левом нижнем углу -->
+		{{ if .calculationsCount }}
+		<!-- ЕСЛИ КОРЗИНА НЕ ПУСТАЯ - ДЕЛАЕМ ССЫЛКУ АКТИВНОЙ -->
+		<a href="/calculation/{{ .draftCardID }}" class="folder-icon">
 			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
-			{{ if .calculationsCount }}
 			<span class="notification-badge">{{ .calculationsCount }}</span>
-			{{ end }}
 		</a>
+		{{ else }}
+		<!-- ЕСЛИ КОРЗИНА ПУСТАЯ - ДЕЛАЕМ НЕАКТИВНОЙ -->
+		<div class="folder-icon" style="cursor: not-allowed; opacity: 0.5">
+			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
+		</div>
+		{{ end }}
+		<!-- ПРАВКА 1 КОНЕЦ -->
 	</body>
 </html>

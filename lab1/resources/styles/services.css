@@ -88,6 +88,18 @@ body {
 	font-weight: bold;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
+/* FIX 1 */
+/* Стили для неактивной иконки папки */
+.folder-icon[style*='cursor: not-allowed'] {
+	pointer-events: none;
+	opacity: 0.5;
+}
+
+.folder-icon[style*='cursor: not-allowed']:hover {
+	opacity: 0.5;
+	transform: none;
+}
+/* FIX 1 END */
 
 .main-content {
 	padding: 0 0 2rem 0;
