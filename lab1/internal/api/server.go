@@ -25,13 +25,13 @@ func StartServer() {
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./resources")
 
-	// маршруты GET запросы
+	// GET
 	r.GET("/", handler.GetDjelPatients)
 	r.GET("/djel_patients", handler.GetDjelPatients)
 	r.GET("/djel_patient/:id", handler.GetDjelPatient)
 	r.GET("/djel_request/:id", handler.GetDjelRequest)
 
-	// маршруты POST запросы
+	//  POST
 	r.POST("/djel_patient/:id/add", handler.AddToCart)
 	r.POST("/djel_request/delete", handler.DeleteCart)
 
