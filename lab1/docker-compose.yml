@@ -10,9 +10,6 @@ x-minio-common: &minio-common
   expose:
     - '9000'
     - '9001'
-    # environment:
-    # MINIO_ROOT_USER: minioadmin
-    # MINIO_ROOT_PASSWORD: minioadmin
   healthcheck:
     test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
     interval: 30s
@@ -64,25 +61,41 @@ services:
       - minio2
       - minio3
       - minio4
+
   postgres:
     image: postgres:latest
     container_name: lab2_postgres
     environment:
-      POSTGRES_USER: simpleuser # Очень простое имя пользователя
-      POSTGRES_PASSWORD: 12345 # Очень простой пароль
-      POSTGRES_DB: lung_db # Название базы данных
+      POSTGRES_USER: simpleuser
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: lung_db
     ports:
-      - '5432:5432' # Слушаем на стандартном порту
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   adminer:
     image: adminer:latest
     container_name: lab2_adminer
     ports:
-      - '8081:8080' # Заходим на localhost:8081
+      - '8081:8080'
     depends_on:
       - postgres
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio1
+      - minio2
+      - minio3
+      - minio4
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add myminio http://minio1:9000 minio minio124) do echo '...waiting for minio...' && sleep 1; done;
+      /usr/bin/mc mb myminio/pics || true;
+      /usr/bin/mc anonymous set public myminio/pics || true;
+      echo 'Minio initialized successfully';"
 
 ## By default this config uses default local driver,
 ## For custom volumes replace with volume driver configuration.
