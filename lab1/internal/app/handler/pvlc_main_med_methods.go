@@ -38,37 +38,40 @@ func NewHandler(r *repository.Repository) *Handler {
 }
 
 // конвертим вью в шаблон
-func convertToView(calc ds.Calculation) ServiceView {
+// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+func convertFormulaToView(formula ds.PvlcMedFormula) ServiceView {
 	return ServiceView{
-		ID:          calc.ID,
-		Title:       calc.Title,
-		Description: calc.Description,
-		Formula:     calc.Formula,
-		Image:       calc.ImageURL,
-		Category:    calc.Category,
-		Gender:      calc.Gender,
-		MinAge:      calc.MinAge,
-		MaxAge:      calc.MaxAge,
+		ID:          formula.ID,
+		Title:       formula.Title,
+		Description: formula.Description,
+		Formula:     formula.Formula,
+		Image:       formula.ImageURL,
+		Category:    formula.Category,
+		Gender:      formula.Gender,
+		MinAge:      formula.MinAge,
+		MaxAge:      formula.MaxAge,
 		Height:      "",
 		Result:      "",
 	}
 }
 
-// ПЕРЕИМЕНОВАНО: GetServices -> GetDjelPatients
-func (h *Handler) GetDjelPatients(ctx *gin.Context) {
-	var calculations []ds.Calculation
+// ✅ ПЕРЕИМЕНОВАНО: GetDjelPatients -> GetPvlcPatients
+func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
+	var formulas []ds.PvlcMedFormula
 	var err error
 
 	searchQuery := ctx.Query("query")
 	if searchQuery == "" {
-		calculations, err = h.Repository.GetServices()
+		// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulas -> GetActivePvlcMedFormulas
+		formulas, err = h.Repository.GetActivePvlcMedFormulas()
 		if err != nil {
 			logrus.Error(err)
 			ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка базы данных"})
 			return
 		}
 	} else {
-		calculations, err = h.Repository.GetServicesByTitle(searchQuery)
+		// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasByTitle -> GetPvlcMedFormulasByTitle
+		formulas, err = h.Repository.GetPvlcMedFormulasByTitle(searchQuery)
 		if err != nil {
 			logrus.Error(err)
 			ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка поиска"})
@@ -77,14 +80,16 @@ func (h *Handler) GetDjelPatients(ctx *gin.Context) {
 	}
 
 	// обработчик обновы количества элементов в корзинке-папке
-	count, err := h.Repository.GetCalculationsCount()
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
 		count = 0
 	}
 
 	// получаем ID черновика для ссылки
-	draftCardID, err := h.Repository.GetDraftCardID()
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
+	draftCardID, err := h.Repository.GetDraftPvlcMedCardID()
 	if err != nil {
 		logrus.Error("Error getting draft card ID:", err)
 		draftCardID = 0
@@ -92,12 +97,13 @@ func (h *Handler) GetDjelPatients(ctx *gin.Context) {
 
 	// конверт шаблон
 	var services []ServiceView
-	for _, calc := range calculations {
-		services = append(services, convertToView(calc))
+	for _, formula := range formulas {
+		// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+		services = append(services, convertFormulaToView(formula))
 	}
 
-	// ПЕРЕИМЕНОВАНО: services.html -> djel_patients.html
-	ctx.HTML(http.StatusOK, "djel_patients.html", gin.H{
+	// ✅ ПЕРЕИМЕНОВАНО: djel_patients.html -> pvlc_patients.html
+	ctx.HTML(http.StatusOK, "pvlc_patients.html", gin.H{
 		"time":              time.Now().Format("15:04:05"),
 		"services":          services,
 		"query":             searchQuery,
@@ -106,8 +112,8 @@ func (h *Handler) GetDjelPatients(ctx *gin.Context) {
 	})
 }
 
-// ПЕРЕИМЕНОВАНО: GetService -> GetDjelPatient
-func (h *Handler) GetDjelPatient(ctx *gin.Context) {
+// ✅ ПЕРЕИМЕНОВАНО: GetDjelPatient -> GetPvlcPatient
+func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
 	id, err := strconv.Atoi(idStr)
@@ -117,40 +123,44 @@ func (h *Handler) GetDjelPatient(ctx *gin.Context) {
 		return
 	}
 
-	calculation, err := h.Repository.GetService(id)
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormula -> GetPvlcMedFormulaByIDForHTML
+	formula, err := h.Repository.GetPvlcMedFormulaByIDForHTML(id)
 	if err != nil {
 		logrus.Error(err)
-		ctx.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Услуга не найдена"})
+		ctx.HTML(http.StatusNotFound, "error.html", gin.H{"error": "Формула не найдена"})
 		return
 	}
 
 	// гет элементов в корзине
-	count, err := h.Repository.GetCalculationsCount()
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
 		count = 0
 	}
 
 	// получаем ID черновика для ссылки
-	draftCardID, err := h.Repository.GetDraftCardID()
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
+	draftCardID, err := h.Repository.GetDraftPvlcMedCardID()
 	if err != nil {
 		logrus.Error("Error getting draft card ID:", err)
 		draftCardID = 0
 	}
 
 	// конверт шаблон
-	service := convertToView(calculation)
+	// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+	service := convertFormulaToView(formula)
 
-	// ПЕРЕИМЕНОВАНО: service.html -> djel_patient.html
-	ctx.HTML(http.StatusOK, "djel_patient.html", gin.H{
+	// ✅ ПЕРЕИМЕНОВАНО: djel_patient.html -> pvlc_patient.html
+	ctx.HTML(http.StatusOK, "pvlc_patient.html", gin.H{
 		"service":           service,
 		"calculationsCount": count,
 		"draftCardID":       draftCardID, // ДОБАВЛЯЕМ ID ЧЕРНОВИКА
 	})
 }
 
-// ПЕРЕИМЕНОВАНО: GetCalculation -> GetDjelRequest
-func (h *Handler) GetDjelRequest(ctx *gin.Context) {
+// ✅ ПЕРЕИМЕНОВАНО: GetDjelRequest -> GetPvlcMedCalc
+func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	// получаем ID из URL
 	idStr := ctx.Param("id")
 	cardID, err := strconv.Atoi(idStr)
@@ -161,7 +171,8 @@ func (h *Handler) GetDjelRequest(ctx *gin.Context) {
 	}
 
 	// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ КАРТЫ
-	exists, err := h.Repository.CheckCardExists(uint(cardID))
+	// ✅ ИСПРАВЛЕНО: CheckPvlcMedCardExists -> CheckPvlcMedCardExists
+	exists, err := h.Repository.CheckPvlcMedCardExists(uint(cardID))
 	if err != nil {
 		logrus.Error("Error checking card existence:", err)
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка проверки карты"})
@@ -176,7 +187,8 @@ func (h *Handler) GetDjelRequest(ctx *gin.Context) {
 	}
 
 	// корзина по ID карты
-	calculations, err := h.Repository.GetCalculationByCardID(uint(cardID))
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasByCardID -> GetPvlcMedFormulasByCardIDForHTML
+	formulas, err := h.Repository.GetPvlcMedFormulasByCardIDForHTML(uint(cardID))
 	if err != nil {
 		logrus.Error(err)
 		ctx.HTML(http.StatusInternalServerError, "error.html", gin.H{"error": "Ошибка загрузки корзины"})
@@ -184,16 +196,19 @@ func (h *Handler) GetDjelRequest(ctx *gin.Context) {
 	}
 
 	// элементы
-	count, err := h.Repository.GetCalculationsCount()
+	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
 		count = 0
 	}
 
 	// фри врачи
+	// ✅ ИСПРАВЛЕНО: GetAvailableMedDoctors -> GetAvailableDoctors
 	doctors := h.Repository.GetAvailableDoctors()
 
 	// текущий врач
+	// ✅ ИСПРАВЛЕНО: GetCurrentMedDoctor -> GetCurrentDoctor
 	currentDoctor, err := h.Repository.GetCurrentDoctor()
 	if err != nil {
 		logrus.Error("Error getting current doctor:", err)
@@ -202,12 +217,13 @@ func (h *Handler) GetDjelRequest(ctx *gin.Context) {
 
 	// темплейт конверт
 	var services []ServiceView
-	for _, calc := range calculations {
-		services = append(services, convertToView(calc))
+	for _, formula := range formulas {
+		// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+		services = append(services, convertFormulaToView(formula))
 	}
 
-	// ПЕРЕИМЕНОВАНО: calculation.html -> djel_request.html
-	ctx.HTML(http.StatusOK, "djel_request.html", gin.H{
+	// ✅ ПЕРЕИМЕНОВАНО: djel_request.html -> pvlc_med_calc.html
+	ctx.HTML(http.StatusOK, "pvlc_med_calc.html", gin.H{
 		"calculations":      services,
 		"calculationsCount": count,
 		"doctors":           doctors,       //

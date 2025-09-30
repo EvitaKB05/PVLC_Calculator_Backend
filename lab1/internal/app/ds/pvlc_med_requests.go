@@ -2,7 +2,7 @@ package ds
 
 // Запросы для API
 
-type CreateCalculationRequest struct {
+type CreatePvlcMedFormulaRequest struct {
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
 	Formula     string `json:"formula" binding:"required"`
@@ -12,7 +12,7 @@ type CreateCalculationRequest struct {
 	MaxAge      int    `json:"max_age" binding:"required"`
 }
 
-type UpdateCalculationRequest struct {
+type UpdatePvlcMedFormulaRequest struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Formula     string `json:"formula"`
@@ -23,13 +23,13 @@ type UpdateCalculationRequest struct {
 	IsActive    *bool  `json:"is_active"`
 }
 
-type MedicalCardFilter struct {
+type PvlcMedCardFilter struct {
 	Status   string `form:"status"`
 	DateFrom string `form:"date_from"`
 	DateTo   string `form:"date_to"`
 }
 
-type CalculationFilter struct {
+type PvlcMedFormulaFilter struct {
 	Category string `form:"category"`
 	Gender   string `form:"gender"`
 	MinAge   int    `form:"min_age"`
@@ -37,16 +37,16 @@ type CalculationFilter struct {
 	Active   *bool  `form:"active"`
 }
 
-type UpdateCardCalculationRequest struct {
+type UpdateMedMmPvlcCalculationRequest struct {
 	InputHeight float64 `json:"input_height" binding:"required"`
 }
 
-type UserRegistrationRequest struct {
+type MedUserRegistrationRequest struct {
 	Login       string `json:"login" binding:"required"`
 	Password    string `json:"password" binding:"required"`
 	IsModerator bool   `json:"is_moderator"`
 }
 
-type UpdateUserRequest struct {
+type UpdateMedUserRequest struct {
 	Password string `json:"password"`
 }

@@ -1,6 +1,6 @@
 package ds
 
-type Calculation struct {
+type PvlcMedFormula struct {
 	ID          uint   `gorm:"primaryKey"`
 	Title       string `gorm:"not null"` // название формулы
 	Description string // описание
@@ -14,7 +14,7 @@ type Calculation struct {
 }
 
 // рост +
-type CalculationWithHeight struct {
-	Calculation
+type PvlcMedFormulaWithHeight struct {
+	PvlcMedFormula
 	InputHeight float64 `json:"input_height"`
 }

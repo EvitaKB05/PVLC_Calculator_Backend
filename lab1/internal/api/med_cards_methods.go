@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Домен: Заявки (Medical Cards)
+// Домен: Медицинские карты (PvlcMedCards)
 
 // GET /api/cart/icon - иконка корзины
 func (a *API) GetCartIcon(c *gin.Context) {
@@ -18,7 +18,7 @@ func (a *API) GetCartIcon(c *gin.Context) {
 	userID := uint(1)
 
 	// Получаем черновик
-	card, err := a.repo.GetDraftCardByUserID(userID)
+	card, err := a.repo.GetDraftPvlcMedCardByUserID(userID)
 	if err != nil {
 		// Если черновика нет - возвращаем пустую корзину
 		a.successResponse(c, ds.CartIconResponse{
@@ -28,10 +28,10 @@ func (a *API) GetCartIcon(c *gin.Context) {
 		return
 	}
 
-	// Считаем количество услуг в заявке
-	count, err := a.repo.GetCalculationsCountByCardID(card.ID)
+	// Считаем количество формул в заявке
+	count, err := a.repo.GetPvlcMedFormulasCountByCardID(card.ID)
 	if err != nil {
-		logrus.Error("Error getting calculations count: ", err)
+		logrus.Error("Error getting pvlc med formulas count: ", err)
 		count = 0
 	}
 
@@ -41,24 +41,24 @@ func (a *API) GetCartIcon(c *gin.Context) {
 	})
 }
 
-// GET /api/medical-cards - список заявок (кроме удаленных и черновика)
-func (a *API) GetMedicalCards(c *gin.Context) {
-	var filter ds.MedicalCardFilter
+// GET /api/pvlc-med-cards - список заявок (кроме удаленных и черновика)
+func (a *API) GetPvlcMedCards(c *gin.Context) {
+	var filter ds.PvlcMedCardFilter
 	if err := c.ShouldBindQuery(&filter); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные параметры фильтрации")
 		return
 	}
 
-	cards, err := a.repo.GetMedicalCardsWithFilter(filter)
+	cards, err := a.repo.GetPvlcMedCardsWithFilter(filter)
 	if err != nil {
-		logrus.Error("Error getting medical cards: ", err)
+		logrus.Error("Error getting pvlc med cards: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка получения заявок")
 		return
 	}
 
-	var response []ds.MedicalCardResponse
+	var response []ds.PvlcMedCardResponse
 	for _, card := range cards {
-		cardResponse := ds.MedicalCardResponse{
+		cardResponse := ds.PvlcMedCardResponse{
 			ID:          card.ID,
 			Status:      card.Status,
 			CreatedAt:   card.CreatedAt,
@@ -75,17 +75,17 @@ func (a *API) GetMedicalCards(c *gin.Context) {
 		}
 
 		// Получаем расчеты для этой заявки
-		calculations, err := a.repo.GetCardCalculationsByCardID(card.ID)
+		calculations, err := a.repo.GetMedMmPvlcCalculationsByCardID(card.ID)
 		if err == nil {
 			for _, calc := range calculations {
-				cardResponse.Calculations = append(cardResponse.Calculations, ds.CardCalculationResponse{
-					CalculationID: calc.CalculationID,
-					Title:         calc.Calculation.Title,
-					Description:   calc.Calculation.Description,
-					Formula:       calc.Calculation.Formula,
-					ImageURL:      calc.Calculation.ImageURL,
-					InputHeight:   calc.InputHeight,
-					FinalResult:   calc.FinalResult,
+				cardResponse.Calculations = append(cardResponse.Calculations, ds.MedMmPvlcCalculationResponse{
+					PvlcMedFormulaID: calc.PvlcMedFormulaID,
+					Title:            calc.PvlcMedFormula.Title,
+					Description:      calc.PvlcMedFormula.Description,
+					Formula:          calc.PvlcMedFormula.Formula,
+					ImageURL:         calc.PvlcMedFormula.ImageURL,
+					InputHeight:      calc.InputHeight,
+					FinalResult:      calc.FinalResult,
 				})
 			}
 		}
@@ -96,8 +96,8 @@ func (a *API) GetMedicalCards(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// GET /api/medical-cards/:id - одна заявка
-func (a *API) GetMedicalCard(c *gin.Context) {
+// GET /api/pvlc-med-cards/:id - одна заявка
+func (a *API) GetPvlcMedCard(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -105,19 +105,19 @@ func (a *API) GetMedicalCard(c *gin.Context) {
 		return
 	}
 
-	card, err := a.repo.GetMedicalCardByID(uint(id))
+	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
 		return
 	}
 
 	// Не возвращаем удаленные заявки
-	if card.Status == ds.MedicalCardStatusDeleted {
+	if card.Status == ds.PvlcMedCardStatusDeleted {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
 		return
 	}
 
-	response := ds.MedicalCardResponse{
+	response := ds.PvlcMedCardResponse{
 		ID:          card.ID,
 		Status:      card.Status,
 		CreatedAt:   card.CreatedAt,
@@ -134,17 +134,17 @@ func (a *API) GetMedicalCard(c *gin.Context) {
 	}
 
 	// Получаем расчеты для этой заявки
-	calculations, err := a.repo.GetCardCalculationsByCardID(card.ID)
+	calculations, err := a.repo.GetMedMmPvlcCalculationsByCardID(card.ID)
 	if err == nil {
 		for _, calc := range calculations {
-			response.Calculations = append(response.Calculations, ds.CardCalculationResponse{
-				CalculationID: calc.CalculationID,
-				Title:         calc.Calculation.Title,
-				Description:   calc.Calculation.Description,
-				Formula:       calc.Calculation.Formula,
-				ImageURL:      calc.Calculation.ImageURL,
-				InputHeight:   calc.InputHeight,
-				FinalResult:   calc.FinalResult,
+			response.Calculations = append(response.Calculations, ds.MedMmPvlcCalculationResponse{
+				PvlcMedFormulaID: calc.PvlcMedFormulaID,
+				Title:            calc.PvlcMedFormula.Title,
+				Description:      calc.PvlcMedFormula.Description,
+				Formula:          calc.PvlcMedFormula.Formula,
+				ImageURL:         calc.PvlcMedFormula.ImageURL,
+				InputHeight:      calc.InputHeight,
+				FinalResult:      calc.FinalResult,
 			})
 		}
 	}
@@ -152,8 +152,8 @@ func (a *API) GetMedicalCard(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// PUT /api/medical-cards/:id - изменение полей заявки
-func (a *API) UpdateMedicalCard(c *gin.Context) {
+// PUT /api/pvlc-med-cards/:id - изменение полей заявки
+func (a *API) UpdatePvlcMedCard(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -170,14 +170,14 @@ func (a *API) UpdateMedicalCard(c *gin.Context) {
 		return
 	}
 
-	card, err := a.repo.GetMedicalCardByID(uint(id))
+	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
 		return
 	}
 
 	// Можно менять только черновики
-	if card.Status != ds.MedicalCardStatusDraft {
+	if card.Status != ds.PvlcMedCardStatusDraft {
 		a.errorResponse(c, http.StatusBadRequest, "Можно изменять только черновики")
 		return
 	}
@@ -189,8 +189,8 @@ func (a *API) UpdateMedicalCard(c *gin.Context) {
 		card.DoctorName = request.DoctorName
 	}
 
-	if err := a.repo.UpdateMedicalCard(&card); err != nil {
-		logrus.Error("Error updating medical card: ", err)
+	if err := a.repo.UpdatePvlcMedCard(&card); err != nil {
+		logrus.Error("Error updating pvlc med card: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления заявки")
 		return
 	}
@@ -198,8 +198,8 @@ func (a *API) UpdateMedicalCard(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Заявка успешно обновлена"})
 }
 
-// PUT /api/medical-cards/:id/finalize - сформировать заявку
-func (a *API) FinalizeMedicalCard(c *gin.Context) {
+// PUT /api/pvlc-med-cards/:id/finalize - сформировать заявку
+func (a *API) FinalizePvlcMedCard(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -207,14 +207,14 @@ func (a *API) FinalizeMedicalCard(c *gin.Context) {
 		return
 	}
 
-	card, err := a.repo.GetMedicalCardByID(uint(id))
+	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
 		return
 	}
 
 	// Проверяем что заявка в статусе черновика
-	if card.Status != ds.MedicalCardStatusDraft {
+	if card.Status != ds.PvlcMedCardStatusDraft {
 		a.errorResponse(c, http.StatusBadRequest, "Можно формировать только черновики")
 		return
 	}
@@ -226,7 +226,7 @@ func (a *API) FinalizeMedicalCard(c *gin.Context) {
 	}
 
 	// Проверяем что есть расчеты
-	count, err := a.repo.GetCalculationsCountByCardID(card.ID)
+	count, err := a.repo.GetPvlcMedFormulasCountByCardID(card.ID)
 	if err != nil || count == 0 {
 		a.errorResponse(c, http.StatusBadRequest, "Добавьте хотя бы один расчет в заявку")
 		return
@@ -234,11 +234,11 @@ func (a *API) FinalizeMedicalCard(c *gin.Context) {
 
 	// Меняем статус и устанавливаем дату формирования
 	now := time.Now()
-	card.Status = ds.MedicalCardStatusFormed
+	card.Status = ds.PvlcMedCardStatusFormed
 	card.FinalizedAt = &now
 
-	if err := a.repo.UpdateMedicalCard(&card); err != nil {
-		logrus.Error("Error finalizing medical card: ", err)
+	if err := a.repo.UpdatePvlcMedCard(&card); err != nil {
+		logrus.Error("Error finalizing pvlc med card: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка формирования заявки")
 		return
 	}
@@ -246,8 +246,8 @@ func (a *API) FinalizeMedicalCard(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Заявка успешно сформирована"})
 }
 
-// PUT /api/medical-cards/:id/complete - завершить/отклонить заявку
-func (a *API) CompleteMedicalCard(c *gin.Context) {
+// PUT /api/pvlc-med-cards/:id/complete - завершить/отклонить заявку
+func (a *API) CompletePvlcMedCard(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -263,14 +263,14 @@ func (a *API) CompleteMedicalCard(c *gin.Context) {
 		return
 	}
 
-	card, err := a.repo.GetMedicalCardByID(uint(id))
+	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
 		return
 	}
 
 	// Проверяем что заявка в статусе сформирована
-	if card.Status != ds.MedicalCardStatusFormed {
+	if card.Status != ds.PvlcMedCardStatusFormed {
 		a.errorResponse(c, http.StatusBadRequest, "Можно завершать/отклонять только сформированные заявки")
 		return
 	}
@@ -280,7 +280,7 @@ func (a *API) CompleteMedicalCard(c *gin.Context) {
 
 	now := time.Now()
 	if request.Action == "complete" {
-		card.Status = ds.MedicalCardStatusCompleted
+		card.Status = ds.PvlcMedCardStatusCompleted
 
 		// ВЫЧИСЛЕНИЕ ДЖЕЛ - реализуем формулу из лабораторной 2
 		totalResult, err := a.repo.CalculateTotalDjel(card.ID)
@@ -291,7 +291,7 @@ func (a *API) CompleteMedicalCard(c *gin.Context) {
 		}
 		card.TotalResult = totalResult
 	} else if request.Action == "reject" {
-		card.Status = ds.MedicalCardStatusRejected
+		card.Status = ds.PvlcMedCardStatusRejected
 	} else {
 		a.errorResponse(c, http.StatusBadRequest, "Неверное действие. Используйте 'complete' или 'reject'")
 		return
@@ -300,8 +300,8 @@ func (a *API) CompleteMedicalCard(c *gin.Context) {
 	card.CompletedAt = &now
 	card.ModeratorID = &moderatorID
 
-	if err := a.repo.UpdateMedicalCard(&card); err != nil {
-		logrus.Error("Error completing medical card: ", err)
+	if err := a.repo.UpdatePvlcMedCard(&card); err != nil {
+		logrus.Error("Error completing pvlc med card: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка завершения заявки")
 		return
 	}
@@ -313,8 +313,8 @@ func (a *API) CompleteMedicalCard(c *gin.Context) {
 	})
 }
 
-// DELETE /api/medical-cards/:id - удаление заявки
-func (a *API) DeleteMedicalCard(c *gin.Context) {
+// DELETE /api/pvlc-med-cards/:id - удаление заявки
+func (a *API) DeletePvlcMedCard(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -322,21 +322,21 @@ func (a *API) DeleteMedicalCard(c *gin.Context) {
 		return
 	}
 
-	card, err := a.repo.GetMedicalCardByID(uint(id))
+	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
 		return
 	}
 
 	// Удалять можно только черновики
-	if card.Status != ds.MedicalCardStatusDraft {
+	if card.Status != ds.PvlcMedCardStatusDraft {
 		a.errorResponse(c, http.StatusBadRequest, "Можно удалять только черновики")
 		return
 	}
 
-	card.Status = ds.MedicalCardStatusDeleted
-	if err := a.repo.UpdateMedicalCard(&card); err != nil {
-		logrus.Error("Error deleting medical card: ", err)
+	card.Status = ds.PvlcMedCardStatusDeleted
+	if err := a.repo.UpdatePvlcMedCard(&card); err != nil {
+		logrus.Error("Error deleting pvlc med card: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка удаления заявки")
 		return
 	}

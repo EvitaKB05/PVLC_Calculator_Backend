@@ -3,14 +3,16 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Лёгкая Жизнь - Расчет ДЖЕЛ</title>
-		<link rel="stylesheet" href="/static/styles/djel_patients.css" />
+		<!-- ЗАМЕНА: обновляем путь к CSS -->
+		<link rel="stylesheet" href="/static/styles/pvlc_patients.css" />
 	</head>
 	<body>
 		<!-- Хедер странички -->
 		<header class="header">
 			<div class="header-container">
 				<div class="logo">
-					<a href="/djel_patients" class="home-link">
+					<!-- ЗАМЕНА: обновляем ссылку на главную -->
+					<a href="/pvlc_patients" class="home-link">
 						<img
 							src="/static/img/lung.png"
 							alt="Лёгкая Жизнь"
@@ -34,7 +36,8 @@
 
 				<!-- Поисковая строка -->
 				<section class="search-section">
-					<form action="/djel_patients" method="GET" class="search-form">
+					<!-- ЗАМЕНА: обновляем action формы -->
+					<form action="/pvlc_patients" method="GET" class="search-form">
 						<div class="search-group">
 							<input
 								type="text"
@@ -63,11 +66,13 @@
 							<div class="card-content">
 								<h3 class="card-title">{{ .Title }}</h3>
 								<div class="card-buttons">
-									<a href="/djel_patient/{{ .ID }}" class="btn btn-details">
+									<!-- ЗАМЕНА: обновляем ссылку на детальную страницу -->
+									<a href="/pvlc_patient/{{ .ID }}" class="btn btn-details">
 										Подробнее
 									</a>
+									<!-- ЗАМЕНА: обновляем action формы добавления -->
 									<form
-										action="/djel_patient/{{ .ID }}/add"
+										action="/pvlc_patient/{{ .ID }}/add"
 										method="POST"
 										style="display: inline"
 									>
@@ -87,7 +92,8 @@
 		<!-- Иконка папки в левом нижнем углу -->
 		{{ if .calculationsCount }}
 		<!-- ЕСЛИ КОРЗИНА НЕ ПУСТАЯ - ДЕЛАЕМ ССЫЛКУ АКТИВНОЙ -->
-		<a href="/djel_request/{{ .draftCardID }}" class="folder-icon">
+		<!-- ЗАМЕНА: обновляем ссылку на страницу расчета -->
+		<a href="/pvlc_med_calc/{{ .draftCardID }}" class="folder-icon">
 			<img src="/static/img/folder.png" alt="Заявки" width="100" height="70" />
 			<span class="notification-badge">{{ .calculationsCount }}</span>
 		</a>

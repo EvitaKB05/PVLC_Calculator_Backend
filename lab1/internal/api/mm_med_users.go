@@ -8,13 +8,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Домен: М-М (Card Calculations)
+// Домен: М-М расчеты (MedMmPvlcCalculations)
 
-// DELETE /api/card-calculations - удаление из заявки
-func (a *API) DeleteCardCalculation(c *gin.Context) {
+// DELETE /api/med-mm-pvlc-calculations - удаление из заявки
+func (a *API) DeleteMedMmPvlcCalculation(c *gin.Context) {
 	var request struct {
-		CardID        uint `json:"card_id" binding:"required"`
-		CalculationID uint `json:"calculation_id" binding:"required"`
+		CardID           uint `json:"card_id" binding:"required"`
+		PvlcMedFormulaID uint `json:"pvlc_med_formula_id" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
@@ -22,14 +22,14 @@ func (a *API) DeleteCardCalculation(c *gin.Context) {
 	}
 
 	// Проверяем что заявка существует и это черновик
-	card, err := a.repo.GetMedicalCardByID(request.CardID)
-	if err != nil || card.Status != ds.MedicalCardStatusDraft {
+	card, err := a.repo.GetPvlcMedCardByID(request.CardID)
+	if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
 		a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
 		return
 	}
 
-	if err := a.repo.DeleteCardCalculation(request.CardID, request.CalculationID); err != nil {
-		logrus.Error("Error deleting card calculation: ", err)
+	if err := a.repo.DeleteMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID); err != nil {
+		logrus.Error("Error deleting med mm pvlc calculation: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка удаления расчета")
 		return
 	}
@@ -37,12 +37,12 @@ func (a *API) DeleteCardCalculation(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Расчет удален из заявки"})
 }
 
-// PUT /api/card-calculations - изменение м-м
-func (a *API) UpdateCardCalculation(c *gin.Context) {
+// PUT /api/med-mm-pvlc-calculations - изменение м-м
+func (a *API) UpdateMedMmPvlcCalculation(c *gin.Context) {
 	var request struct {
-		CardID        uint                            `json:"card_id" binding:"required"`
-		CalculationID uint                            `json:"calculation_id" binding:"required"`
-		Data          ds.UpdateCardCalculationRequest `json:"data" binding:"required"`
+		CardID           uint                                 `json:"card_id" binding:"required"`
+		PvlcMedFormulaID uint                                 `json:"pvlc_med_formula_id" binding:"required"`
+		Data             ds.UpdateMedMmPvlcCalculationRequest `json:"data" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
@@ -50,14 +50,14 @@ func (a *API) UpdateCardCalculation(c *gin.Context) {
 	}
 
 	// Проверяем что заявка существует и это черновик
-	card, err := a.repo.GetMedicalCardByID(request.CardID)
-	if err != nil || card.Status != ds.MedicalCardStatusDraft {
+	card, err := a.repo.GetPvlcMedCardByID(request.CardID)
+	if err != nil || card.Status != ds.PvlcMedCardStatusDraft {
 		a.errorResponse(c, http.StatusBadRequest, "Неверная заявка")
 		return
 	}
 
-	if err := a.repo.UpdateCardCalculation(request.CardID, request.CalculationID, request.Data.InputHeight); err != nil {
-		logrus.Error("Error updating card calculation: ", err)
+	if err := a.repo.UpdateMedMmPvlcCalculation(request.CardID, request.PvlcMedFormulaID, request.Data.InputHeight); err != nil {
+		logrus.Error("Error updating med mm pvlc calculation: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления расчета")
 		return
 	}
@@ -65,31 +65,31 @@ func (a *API) UpdateCardCalculation(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Расчет успешно обновлен"})
 }
 
-// Домен: Пользователи
+// Домен: Пользователи (MedUsers)
 
-// POST /api/users/register - регистрация
-func (a *API) RegisterUser(c *gin.Context) {
-	var request ds.UserRegistrationRequest
+// POST /api/med-users/register - регистрация
+func (a *API) RegisterMedUser(c *gin.Context) {
+	var request ds.MedUserRegistrationRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
 		return
 	}
 
 	// Проверяем что логин не занят
-	existing, _ := a.repo.GetUserByLogin(request.Login)
+	existing, _ := a.repo.GetMedUserByLogin(request.Login)
 	if existing != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Пользователь с таким логином уже существует")
 		return
 	}
 
-	user := ds.User{
+	user := ds.MedUser{
 		Login:       request.Login,
 		Password:    request.Password, // В реальном приложении нужно хэшировать!
 		IsModerator: request.IsModerator,
 	}
 
-	if err := a.repo.CreateUser(&user); err != nil {
-		logrus.Error("Error creating user: ", err)
+	if err := a.repo.CreateMedUser(&user); err != nil {
+		logrus.Error("Error creating med user: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка регистрации")
 		return
 	}
@@ -100,18 +100,18 @@ func (a *API) RegisterUser(c *gin.Context) {
 	})
 }
 
-// GET /api/users/profile - профиль пользователя
-func (a *API) GetUserProfile(c *gin.Context) {
+// GET /api/med-users/profile - профиль пользователя
+func (a *API) GetMedUserProfile(c *gin.Context) {
 	// Фиксированный пользователь для демонстрации
 	userID := uint(1)
 
-	user, err := a.repo.GetUserByID(userID)
+	user, err := a.repo.GetMedUserByID(userID)
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Пользователь не найден")
 		return
 	}
 
-	response := ds.UserResponse{
+	response := ds.MedUserResponse{
 		ID:          user.ID,
 		Login:       user.Login,
 		IsModerator: user.IsModerator,
@@ -120,18 +120,18 @@ func (a *API) GetUserProfile(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// PUT /api/users/profile - обновление профиля
-func (a *API) UpdateUserProfile(c *gin.Context) {
+// PUT /api/med-users/profile - обновление профиля
+func (a *API) UpdateMedUserProfile(c *gin.Context) {
 	// Фиксированный пользователь для демонстрации
 	userID := uint(1)
 
-	var request ds.UpdateUserRequest
+	var request ds.UpdateMedUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
 		return
 	}
 
-	user, err := a.repo.GetUserByID(userID)
+	user, err := a.repo.GetMedUserByID(userID)
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Пользователь не найден")
 		return
@@ -141,8 +141,8 @@ func (a *API) UpdateUserProfile(c *gin.Context) {
 		user.Password = request.Password // В реальном приложении нужно хэшировать!
 	}
 
-	if err := a.repo.UpdateUser(&user); err != nil {
-		logrus.Error("Error updating user: ", err)
+	if err := a.repo.UpdateMedUser(&user); err != nil {
+		logrus.Error("Error updating med user: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка обновления профиля")
 		return
 	}
@@ -150,8 +150,8 @@ func (a *API) UpdateUserProfile(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Профиль успешно обновлен"})
 }
 
-// POST /api/users/login - аутентификация
-func (a *API) Login(c *gin.Context) {
+// POST /api/med-users/login - аутентификация
+func (a *API) LoginMedUser(c *gin.Context) {
 	var request struct {
 		Login    string `json:"login" binding:"required"`
 		Password string `json:"password" binding:"required"`
@@ -161,13 +161,13 @@ func (a *API) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := a.repo.GetUserByLogin(request.Login)
+	user, err := a.repo.GetMedUserByLogin(request.Login)
 	if err != nil || user.Password != request.Password { // В реальном приложении сравнивать хэши!
 		a.errorResponse(c, http.StatusUnauthorized, "Неверный логин или пароль")
 		return
 	}
 
-	response := ds.UserResponse{
+	response := ds.MedUserResponse{
 		ID:          user.ID,
 		Login:       user.Login,
 		IsModerator: user.IsModerator,
@@ -179,8 +179,8 @@ func (a *API) Login(c *gin.Context) {
 	})
 }
 
-// POST /api/users/logout - деавторизация
-func (a *API) Logout(c *gin.Context) {
+// POST /api/med-users/logout - деавторизация
+func (a *API) LogoutMedUser(c *gin.Context) {
 	// В реальном приложении здесь инвалидируем токен
 	a.successResponse(c, gin.H{"message": "Успешный выход из системы"})
 }

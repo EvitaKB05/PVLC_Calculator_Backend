@@ -24,10 +24,10 @@ func main() {
 
 	// Выполняем миграции (создание таблиц)
 	err = db.AutoMigrate(
-		&ds.User{},
-		&ds.Calculation{},
-		&ds.MedicalCard{},
-		&ds.CardCalculation{},
+		&ds.MedUser{},
+		&ds.PvlcMedFormula{},
+		&ds.PvlcMedCard{},
+		&ds.MedMmPvlcCalculation{},
 	)
 	if err != nil {
 		panic("cant migrate db: " + err.Error())

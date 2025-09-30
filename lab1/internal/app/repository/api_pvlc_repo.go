@@ -13,12 +13,12 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-// Методы для API
+// ==================== МЕТОДЫ ДЛЯ API ФОРМУЛ ДЖЕЛ ====================
 
-// GetCalculationsWithFilter - получение услуг с фильтрацией
-func (r *Repository) GetCalculationsWithFilter(filter ds.CalculationFilter) ([]ds.Calculation, error) {
-	var calculations []ds.Calculation
-	query := r.db.Model(&ds.Calculation{})
+// GetPvlcMedFormulasWithFilter - получение формул с фильтрацией для API (бывший GetCalculationsWithFilter)
+func (r *Repository) GetPvlcMedFormulasWithFilter(filter ds.PvlcMedFormulaFilter) ([]ds.PvlcMedFormula, error) {
+	var formulas []ds.PvlcMedFormula
+	query := r.db.Model(&ds.PvlcMedFormula{})
 
 	if filter.Category != "" {
 		query = query.Where("category = ?", filter.Category)
@@ -36,37 +36,39 @@ func (r *Repository) GetCalculationsWithFilter(filter ds.CalculationFilter) ([]d
 		query = query.Where("is_active = ?", *filter.Active)
 	}
 
-	err := query.Find(&calculations).Error
-	return calculations, err
+	err := query.Find(&formulas).Error
+	return formulas, err
 }
 
-// GetCalculationByID - получение услуги по ID
-func (r *Repository) GetCalculationByID(id uint) (ds.Calculation, error) {
-	var calculation ds.Calculation
-	err := r.db.First(&calculation, id).Error
-	return calculation, err
+// GetPvlcMedFormulaByID - получение формулы по ID для API (бывший GetCalculationByID)
+func (r *Repository) GetPvlcMedFormulaByID(id uint) (ds.PvlcMedFormula, error) {
+	var formula ds.PvlcMedFormula
+	err := r.db.First(&formula, id).Error
+	return formula, err
 }
 
-// CreateCalculation - создание услуги
-func (r *Repository) CreateCalculation(calculation *ds.Calculation) error {
-	return r.db.Create(calculation).Error
+// CreatePvlcMedFormula - создание формулы для API (бывший CreateCalculation)
+func (r *Repository) CreatePvlcMedFormula(formula *ds.PvlcMedFormula) error {
+	return r.db.Create(formula).Error
 }
 
-// UpdateCalculation - обновление услуги
-func (r *Repository) UpdateCalculation(calculation *ds.Calculation) error {
-	return r.db.Save(calculation).Error
+// UpdatePvlcMedFormula - обновление формулы для API (бывший UpdateCalculation)
+func (r *Repository) UpdatePvlcMedFormula(formula *ds.PvlcMedFormula) error {
+	return r.db.Save(formula).Error
 }
 
-// DeleteCalculation - удаление услуги
-func (r *Repository) DeleteCalculation(id uint) error {
-	return r.db.Delete(&ds.Calculation{}, id).Error
+// DeletePvlcMedFormula - удаление формулы для API (бывший DeleteCalculation)
+func (r *Repository) DeletePvlcMedFormula(id uint) error {
+	return r.db.Delete(&ds.PvlcMedFormula{}, id).Error
 }
 
-// GetMedicalCardsWithFilter - получение заявок с фильтрацией
-func (r *Repository) GetMedicalCardsWithFilter(filter ds.MedicalCardFilter) ([]ds.MedicalCard, error) {
-	var cards []ds.MedicalCard
+// ==================== МЕТОДЫ ДЛЯ API МЕДИЦИНСКИХ КАРТ ====================
+
+// GetPvlcMedCardsWithFilter - получение медкарт с фильтрацией для API (бывший GetMedicalCardsWithFilter)
+func (r *Repository) GetPvlcMedCardsWithFilter(filter ds.PvlcMedCardFilter) ([]ds.PvlcMedCard, error) {
+	var cards []ds.PvlcMedCard
 	query := r.db.Where("status != ? AND status != ?",
-		ds.MedicalCardStatusDeleted, ds.MedicalCardStatusDraft)
+		ds.PvlcMedCardStatusDeleted, ds.PvlcMedCardStatusDraft)
 
 	if filter.Status != "" {
 		query = query.Where("status = ?", filter.Status)
@@ -86,62 +88,64 @@ func (r *Repository) GetMedicalCardsWithFilter(filter ds.MedicalCardFilter) ([]d
 	return cards, err
 }
 
-// GetMedicalCardByID - получение заявки по ID
-func (r *Repository) GetMedicalCardByID(id uint) (ds.MedicalCard, error) {
-	var card ds.MedicalCard
+// GetPvlcMedCardByID - получение медкарты по ID для API (бывший GetMedicalCardByID)
+func (r *Repository) GetPvlcMedCardByID(id uint) (ds.PvlcMedCard, error) {
+	var card ds.PvlcMedCard
 	err := r.db.Preload("Moderator").First(&card, id).Error
 	return card, err
 }
 
-// UpdateMedicalCard - обновление заявки
-func (r *Repository) UpdateMedicalCard(card *ds.MedicalCard) error {
+// UpdatePvlcMedCard - обновление медкарты для API (бывший UpdateMedicalCard)
+func (r *Repository) UpdatePvlcMedCard(card *ds.PvlcMedCard) error {
 	return r.db.Save(card).Error
 }
 
-// GetDraftCardByUserID - получение черновика по ID пользователя
-func (r *Repository) GetDraftCardByUserID(userID uint) (*ds.MedicalCard, error) {
-	var card ds.MedicalCard
-	err := r.db.Where("status = ?", ds.MedicalCardStatusDraft).First(&card).Error
+// GetDraftPvlcMedCardByUserID - получение черновика по ID пользователя для API (бывший GetDraftCardByUserID)
+func (r *Repository) GetDraftPvlcMedCardByUserID(userID uint) (*ds.PvlcMedCard, error) {
+	var card ds.PvlcMedCard
+	err := r.db.Where("status = ?", ds.PvlcMedCardStatusDraft).First(&card).Error
 	if err != nil {
 		return nil, err
 	}
 	return &card, nil
 }
 
-// GetCalculationsCountByCardID - количество расчетов в заявке
-func (r *Repository) GetCalculationsCountByCardID(cardID uint) (int, error) {
+// GetPvlcMedFormulasCountByCardID - количество формул в медкарте для API (бывший GetCalculationsCountByCardID)
+func (r *Repository) GetPvlcMedFormulasCountByCardID(cardID uint) (int, error) {
 	var count int64
-	err := r.db.Model(&ds.CardCalculation{}).Where("medical_card_id = ?", cardID).Count(&count).Error
+	err := r.db.Model(&ds.MedMmPvlcCalculation{}).Where("pvlc_med_card_id = ?", cardID).Count(&count).Error
 	return int(count), err
 }
 
-// GetCardCalculationsByCardID - получение расчетов заявки
-func (r *Repository) GetCardCalculationsByCardID(cardID uint) ([]ds.CardCalculation, error) {
-	var calculations []ds.CardCalculation
-	err := r.db.Where("medical_card_id = ?", cardID).
-		Preload("Calculation").
+// GetMedMmPvlcCalculationsByCardID - получение расчетов медкарты для API (бывший GetCardCalculationsByCardID)
+func (r *Repository) GetMedMmPvlcCalculationsByCardID(cardID uint) ([]ds.MedMmPvlcCalculation, error) {
+	var calculations []ds.MedMmPvlcCalculation
+	err := r.db.Where("pvlc_med_card_id = ?", cardID).
+		Preload("PvlcMedFormula").
 		Find(&calculations).Error
 	return calculations, err
 }
 
-// DeleteCardCalculation - удаление расчета из заявки
-func (r *Repository) DeleteCardCalculation(cardID, calculationID uint) error {
-	return r.db.Where("medical_card_id = ? AND calculation_id = ?", cardID, calculationID).
-		Delete(&ds.CardCalculation{}).Error
+// DeleteMedMmPvlcCalculation - удаление расчета из медкарты для API (бывший DeleteCardCalculation)
+func (r *Repository) DeleteMedMmPvlcCalculation(cardID, formulaID uint) error {
+	return r.db.Where("pvlc_med_card_id = ? AND pvlc_med_formula_id = ?", cardID, formulaID).
+		Delete(&ds.MedMmPvlcCalculation{}).Error
 }
 
-// UpdateCardCalculation - обновление расчета в заявке
-func (r *Repository) UpdateCardCalculation(cardID, calculationID uint, inputHeight float64) error {
-	return r.db.Model(&ds.CardCalculation{}).
-		Where("medical_card_id = ? AND calculation_id = ?", cardID, calculationID).
+// UpdateMedMmPvlcCalculation - обновление расчета в медкарте для API (бывший UpdateCardCalculation)
+func (r *Repository) UpdateMedMmPvlcCalculation(cardID, formulaID uint, inputHeight float64) error {
+	return r.db.Model(&ds.MedMmPvlcCalculation{}).
+		Where("pvlc_med_card_id = ? AND pvlc_med_formula_id = ?", cardID, formulaID).
 		Update("input_height", inputHeight).Error
 }
 
-// CalculateTotalDjel - вычисление общего ДЖЕЛ для заявки
+// ==================== МЕТОДЫ ДЛЯ РАСЧЕТА ДЖЕЛ (API) ====================
+
+// CalculateTotalDjel - вычисление общего ДЖЕЛ для медкарты для API (без изменений)
 func (r *Repository) CalculateTotalDjel(cardID uint) (float64, error) {
-	var calculations []ds.CardCalculation
-	err := r.db.Where("medical_card_id = ?", cardID).
-		Preload("Calculation").
+	var calculations []ds.MedMmPvlcCalculation
+	err := r.db.Where("pvlc_med_card_id = ?", cardID).
+		Preload("PvlcMedFormula").
 		Find(&calculations).Error
 	if err != nil {
 		return 0, err
@@ -151,7 +155,7 @@ func (r *Repository) CalculateTotalDjel(cardID uint) (float64, error) {
 	for _, cc := range calculations {
 		if cc.InputHeight > 0 {
 			// РЕАЛЬНЫЙ РАСЧЕТ ПО ФОРМУЛЕ ИЗ БАЗЫ ДАННЫХ
-			result := r.calculateDjelByFormula(cc.Calculation.Formula, cc.InputHeight)
+			result := r.calculateDjelByFormula(cc.PvlcMedFormula.Formula, cc.InputHeight)
 			cc.FinalResult = result
 			total += result
 
@@ -163,7 +167,7 @@ func (r *Repository) CalculateTotalDjel(cardID uint) (float64, error) {
 	return total, nil
 }
 
-// НОВЫЙ МЕТОД: Реальный расчет ДЖЕЛ по формуле
+// calculateDjelByFormula - реальный расчет ДЖЕЛ по формуле для API (без изменений)
 func (r *Repository) calculateDjelByFormula(formula string, height float64) float64 {
 	// Для демонстрации используем фиксированный возраст 5 лет
 	age := 5.0
@@ -203,15 +207,18 @@ func (r *Repository) calculateDjelByFormula(formula string, height float64) floa
 	return height * 0.03 // Упрощенный расчет
 }
 
-// User methods
-func (r *Repository) GetUserByID(id uint) (ds.User, error) {
-	var user ds.User
+// ==================== МЕТОДЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ (API) ====================
+
+// GetMedUserByID - получение пользователя по ID для API (бывший GetUserByID)
+func (r *Repository) GetMedUserByID(id uint) (ds.MedUser, error) {
+	var user ds.MedUser
 	err := r.db.First(&user, id).Error
 	return user, err
 }
 
-func (r *Repository) GetUserByLogin(login string) (*ds.User, error) {
-	var user ds.User
+// GetMedUserByLogin - получение пользователя по логину для API (бывший GetUserByLogin)
+func (r *Repository) GetMedUserByLogin(login string) (*ds.MedUser, error) {
+	var user ds.MedUser
 	err := r.db.Where("login = ?", login).First(&user).Error
 	if err != nil {
 		return nil, err
@@ -219,16 +226,20 @@ func (r *Repository) GetUserByLogin(login string) (*ds.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) CreateUser(user *ds.User) error {
+// CreateMedUser - создание пользователя для API (бывший CreateUser)
+func (r *Repository) CreateMedUser(user *ds.MedUser) error {
 	return r.db.Create(user).Error
 }
 
-func (r *Repository) UpdateUser(user *ds.User) error {
+// UpdateMedUser - обновление пользователя для API (бывший UpdateUser)
+func (r *Repository) UpdateMedUser(user *ds.MedUser) error {
 	return r.db.Save(user).Error
 }
 
-// MinIO methods
-func (r *Repository) UploadImageToMinIO(file *multipart.FileHeader, calculationID uint) (string, error) {
+// ==================== МЕТОДЫ ДЛЯ MINIO (API) ====================
+
+// UploadImageToMinIO - загрузка изображения в MinIO для API (без изменений)
+func (r *Repository) UploadImageToMinIO(file *multipart.FileHeader, formulaID uint) (string, error) {
 	// Создаем клиент MinIO
 	minioClient, err := minio.New("localhost:9000", &minio.Options{
 		Creds:  credentials.NewStaticV4("minio", "minio124", ""),
@@ -247,7 +258,7 @@ func (r *Repository) UploadImageToMinIO(file *multipart.FileHeader, calculationI
 
 	// Генерируем имя файла
 	ext := filepath.Ext(file.Filename)
-	filename := fmt.Sprintf("calculation_%d%s", calculationID, ext)
+	filename := fmt.Sprintf("pvlc_med_formula_%d%s", formulaID, ext)
 
 	// Загружаем в MinIO
 	_, err = minioClient.PutObject(context.Background(), "pics", filename, src, file.Size, minio.PutObjectOptions{
@@ -260,6 +271,7 @@ func (r *Repository) UploadImageToMinIO(file *multipart.FileHeader, calculationI
 	return filename, nil
 }
 
+// DeleteImageFromMinIO - удаление изображения из MinIO для API (без изменений)
 func (r *Repository) DeleteImageFromMinIO(imageURL string) error {
 	minioClient, err := minio.New("localhost:9000", &minio.Options{
 		Creds:  credentials.NewStaticV4("minio", "minio124", ""),
@@ -273,7 +285,7 @@ func (r *Repository) DeleteImageFromMinIO(imageURL string) error {
 	return err
 }
 
-// Добавьте этот метод в конец api_repository.go если отсутствует
+// InitMinIOBucket - инициализация MinIO bucket для API (без изменений)
 func (r *Repository) InitMinIOBucket() error {
 	minioClient, err := minio.New("localhost:9000", &minio.Options{
 		Creds:  credentials.NewStaticV4("minio", "minio124", ""),
