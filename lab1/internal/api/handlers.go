@@ -50,20 +50,10 @@ func (a *API) GetCalculations(c *gin.Context) {
 		return
 	}
 
+	// Новая версия:
 	var response []ds.CalculationResponse
 	for _, calc := range calculations {
-		response = append(response, ds.CalculationResponse{
-			ID:          calc.ID,
-			Title:       calc.Title,
-			Description: calc.Description,
-			Formula:     calc.Formula,
-			ImageURL:    calc.ImageURL,
-			Category:    calc.Category,
-			Gender:      calc.Gender,
-			MinAge:      calc.MinAge,
-			MaxAge:      calc.MaxAge,
-			IsActive:    calc.IsActive,
-		})
+		response = append(response, ds.CalculationResponse(calc))
 	}
 
 	a.successResponse(c, response)
@@ -85,18 +75,8 @@ func (a *API) GetCalculation(c *gin.Context) {
 		return
 	}
 
-	response := ds.CalculationResponse{
-		ID:          calculation.ID,
-		Title:       calculation.Title,
-		Description: calculation.Description,
-		Formula:     calculation.Formula,
-		ImageURL:    calculation.ImageURL,
-		Category:    calculation.Category,
-		Gender:      calculation.Gender,
-		MinAge:      calculation.MinAge,
-		MaxAge:      calculation.MaxAge,
-		IsActive:    calculation.IsActive,
-	}
+	// Простое преобразование типа
+	response := ds.CalculationResponse(calculation)
 
 	a.successResponse(c, response)
 }
