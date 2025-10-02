@@ -24,15 +24,15 @@ type PvlcMedFormulaResponse struct {
 }
 
 type PvlcMedCardResponse struct {
-	ID           uint                           `json:"id"`
-	Status       string                         `json:"status"`
-	CreatedAt    time.Time                      `json:"created_at"`
-	PatientName  string                         `json:"patient_name"`
-	DoctorName   string                         `json:"doctor_name"`
-	FinalizedAt  *time.Time                     `json:"finalized_at,omitempty"`
-	CompletedAt  *time.Time                     `json:"completed_at,omitempty"`
-	TotalResult  float64                        `json:"total_result"`
-	Calculations []MedMmPvlcCalculationResponse `json:"calculations"`
+	ID              uint                           `json:"id"`
+	Status          string                         `json:"status"`
+	CreatedAt       time.Time                      `json:"created_at"`
+	PatientName     string                         `json:"patient_name"`
+	DoctorName      string                         `json:"doctor_name"`
+	FinalizedAt     *time.Time                     `json:"finalized_at,omitempty"`
+	CompletedAt     *time.Time                     `json:"completed_at,omitempty"`
+	TotalResult     float64                        `json:"total_result"`
+	MedCalculations []MedMmPvlcCalculationResponse `json:"med_calculations"`
 }
 
 type MedMmPvlcCalculationResponse struct {
@@ -46,8 +46,8 @@ type MedMmPvlcCalculationResponse struct {
 }
 
 type CartIconResponse struct {
-	CardID    uint `json:"card_id"`
-	ItemCount int  `json:"item_count"`
+	MedCardID    uint `json:"med_card_id"`
+	MedItemCount int  `json:"med_item_count"`
 }
 
 type MedUserResponse struct {

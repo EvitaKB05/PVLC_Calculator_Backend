@@ -20,16 +20,14 @@ func NewAPI(repo *repository.Repository) *API {
 
 // Вспомогательные функции
 func (a *API) successResponse(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusOK, ds.APIResponse{
-		Status: "success",
-		Data:   data,
+	c.JSON(http.StatusOK, gin.H{
+		"data": data,
 	})
 }
 
 func (a *API) errorResponse(c *gin.Context, statusCode int, message string) {
-	c.JSON(statusCode, ds.APIResponse{
-		Status:  "error",
-		Message: message,
+	c.JSON(statusCode, gin.H{
+		"error": message,
 	})
 }
 
@@ -297,7 +295,7 @@ func (a *API) AddPvlcMedFormulaToCart(c *gin.Context) {
 	}
 
 	a.successResponse(c, gin.H{
-		"message": "Формула добавлена в заявку",
-		"card_id": card.ID,
+		"message":     "Формула добавлена в заявку",
+		"med_card_id": card.ID,
 	})
 }

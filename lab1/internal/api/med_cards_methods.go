@@ -22,8 +22,8 @@ func (a *API) GetCartIcon(c *gin.Context) {
 	if err != nil {
 		// Если черновика нет - возвращаем пустую корзину
 		a.successResponse(c, ds.CartIconResponse{
-			CardID:    0,
-			ItemCount: 0,
+			MedCardID:    0,
+			MedItemCount: 0,
 		})
 		return
 	}
@@ -36,8 +36,8 @@ func (a *API) GetCartIcon(c *gin.Context) {
 	}
 
 	a.successResponse(c, ds.CartIconResponse{
-		CardID:    card.ID,
-		ItemCount: count,
+		MedCardID:    card.ID,
+		MedItemCount: count,
 	})
 }
 
@@ -78,7 +78,7 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 		calculations, err := a.repo.GetMedMmPvlcCalculationsByCardID(card.ID)
 		if err == nil {
 			for _, calc := range calculations {
-				cardResponse.Calculations = append(cardResponse.Calculations, ds.MedMmPvlcCalculationResponse{
+				cardResponse.MedCalculations = append(cardResponse.MedCalculations, ds.MedMmPvlcCalculationResponse{
 					PvlcMedFormulaID: calc.PvlcMedFormulaID,
 					Title:            calc.PvlcMedFormula.Title,
 					Description:      calc.PvlcMedFormula.Description,
@@ -137,7 +137,7 @@ func (a *API) GetPvlcMedCard(c *gin.Context) {
 	calculations, err := a.repo.GetMedMmPvlcCalculationsByCardID(card.ID)
 	if err == nil {
 		for _, calc := range calculations {
-			response.Calculations = append(response.Calculations, ds.MedMmPvlcCalculationResponse{
+			response.MedCalculations = append(response.MedCalculations, ds.MedMmPvlcCalculationResponse{
 				PvlcMedFormulaID: calc.PvlcMedFormulaID,
 				Title:            calc.PvlcMedFormula.Title,
 				Description:      calc.PvlcMedFormula.Description,
