@@ -41,9 +41,7 @@ DROP TABLE IF EXISTS users CASCADE;
 /* */
 -- Очистка старых таблиц если существуют
 DROP TABLE IF EXISTS med_mm_pvlc_calculations, pvlc_med_cards, pvlc_med_formulas, med_users;
-
--- Создание новых таблиц через миграции
--- Таблицы будут созданы автоматически через GORM AutoMigrate
+TRUNCATE TABLE med_mm_pvlc_calculations, med_users, pvlc_med_cards, pvlc_med_formulas RESTART IDENTITY;
 
 -- Вставка тестовых данных
 INSERT INTO med_users (login, password, is_moderator) VALUES
