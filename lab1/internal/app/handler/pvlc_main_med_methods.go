@@ -38,7 +38,7 @@ func NewHandler(r *repository.Repository) *Handler {
 }
 
 // конвертим вью в шаблон
-// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+
 func convertFormulaToView(formula ds.PvlcMedFormula) ServiceView {
 	return ServiceView{
 		ID:          formula.ID,
@@ -55,14 +55,14 @@ func convertFormulaToView(formula ds.PvlcMedFormula) ServiceView {
 	}
 }
 
-// ✅ ПЕРЕИМЕНОВАНО: GetDjelPatients -> GetPvlcPatients
+// GetDjelPatients -> GetPvlcPatients
 func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
 	var formulas []ds.PvlcMedFormula
 	var err error
 
 	searchQuery := ctx.Query("query")
 	if searchQuery == "" {
-		// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulas -> GetActivePvlcMedFormulas
+		// GetPvlcMedFormulas -> GetActivePvlcMedFormulas
 		formulas, err = h.Repository.GetActivePvlcMedFormulas()
 		if err != nil {
 			logrus.Error(err)
@@ -70,7 +70,7 @@ func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
 			return
 		}
 	} else {
-		// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasByTitle -> GetPvlcMedFormulasByTitle
+		// GetPvlcMedFormulasByTitle -> GetPvlcMedFormulasByTitle
 		formulas, err = h.Repository.GetPvlcMedFormulasByTitle(searchQuery)
 		if err != nil {
 			logrus.Error(err)
@@ -80,7 +80,7 @@ func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
 	}
 
 	// обработчик обновы количества элементов в корзинке-папке
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	// GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
 	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
@@ -88,7 +88,7 @@ func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
 	}
 
 	// получаем ID черновика для ссылки
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
+	// GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
 	draftCardID, err := h.Repository.GetDraftPvlcMedCardID()
 	if err != nil {
 		logrus.Error("Error getting draft card ID:", err)
@@ -98,11 +98,11 @@ func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
 	// конверт шаблон
 	var services []ServiceView
 	for _, formula := range formulas {
-		// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+		// convertToView -> convertFormulaToView
 		services = append(services, convertFormulaToView(formula))
 	}
 
-	// ✅ ПЕРЕИМЕНОВАНО: djel_patients.html -> pvlc_patients.html
+	//  djel_patients.html -> pvlc_patients.html
 	ctx.HTML(http.StatusOK, "pvlc_patients.html", gin.H{
 		"time":              time.Now().Format("15:04:05"),
 		"services":          services,
@@ -112,7 +112,7 @@ func (h *Handler) GetPvlcPatients(ctx *gin.Context) {
 	})
 }
 
-// ✅ ПЕРЕИМЕНОВАНО: GetDjelPatient -> GetPvlcPatient
+// GetDjelPatient -> GetPvlcPatient
 func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
@@ -123,7 +123,7 @@ func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 		return
 	}
 
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormula -> GetPvlcMedFormulaByIDForHTML
+	//  GetPvlcMedFormula -> GetPvlcMedFormulaByIDForHTML
 	formula, err := h.Repository.GetPvlcMedFormulaByIDForHTML(id)
 	if err != nil {
 		logrus.Error(err)
@@ -132,7 +132,7 @@ func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 	}
 
 	// гет элементов в корзине
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	// GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
 	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
@@ -140,7 +140,7 @@ func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 	}
 
 	// получаем ID черновика для ссылки
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
+	//  GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
 	draftCardID, err := h.Repository.GetDraftPvlcMedCardID()
 	if err != nil {
 		logrus.Error("Error getting draft card ID:", err)
@@ -148,10 +148,10 @@ func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 	}
 
 	// конверт шаблон
-	// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+	// convertToView -> convertFormulaToView
 	service := convertFormulaToView(formula)
 
-	// ✅ ПЕРЕИМЕНОВАНО: djel_patient.html -> pvlc_patient.html
+	//  djel_patient.html -> pvlc_patient.html
 	ctx.HTML(http.StatusOK, "pvlc_patient.html", gin.H{
 		"service":           service,
 		"calculationsCount": count,
@@ -159,7 +159,7 @@ func (h *Handler) GetPvlcPatient(ctx *gin.Context) {
 	})
 }
 
-// ✅ ПЕРЕИМЕНОВАНО: GetDjelRequest -> GetPvlcMedCalc
+// GetDjelRequest -> GetPvlcMedCalc
 func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	// получаем ID из URL
 	idStr := ctx.Param("id")
@@ -171,7 +171,7 @@ func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	}
 
 	// ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ КАРТЫ
-	// ✅ ИСПРАВЛЕНО: CheckPvlcMedCardExists -> CheckPvlcMedCardExists
+	//  CheckPvlcMedCardExists -> CheckPvlcMedCardExists
 	exists, err := h.Repository.CheckPvlcMedCardExists(uint(cardID))
 	if err != nil {
 		logrus.Error("Error checking card existence:", err)
@@ -187,7 +187,7 @@ func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	}
 
 	// корзина по ID карты
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasByCardID -> GetPvlcMedFormulasByCardIDForHTML
+	//  GetPvlcMedFormulasByCardID -> GetPvlcMedFormulasByCardIDForHTML
 	formulas, err := h.Repository.GetPvlcMedFormulasByCardIDForHTML(uint(cardID))
 	if err != nil {
 		logrus.Error(err)
@@ -196,7 +196,7 @@ func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	}
 
 	// элементы
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	//  GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
 	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
@@ -204,11 +204,11 @@ func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	}
 
 	// фри врачи
-	// ✅ ИСПРАВЛЕНО: GetAvailableMedDoctors -> GetAvailableDoctors
+	//  GetAvailableMedDoctors -> GetAvailableDoctors
 	doctors := h.Repository.GetAvailableDoctors()
 
 	// текущий врач
-	// ✅ ИСПРАВЛЕНО: GetCurrentMedDoctor -> GetCurrentDoctor
+	//  GetCurrentMedDoctor -> GetCurrentDoctor
 	currentDoctor, err := h.Repository.GetCurrentDoctor()
 	if err != nil {
 		logrus.Error("Error getting current doctor:", err)
@@ -218,11 +218,11 @@ func (h *Handler) GetPvlcMedCalc(ctx *gin.Context) {
 	// темплейт конверт
 	var services []ServiceView
 	for _, formula := range formulas {
-		// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+		//  convertToView -> convertFormulaToView
 		services = append(services, convertFormulaToView(formula))
 	}
 
-	// ✅ ПЕРЕИМЕНОВАНО: djel_request.html -> pvlc_med_calc.html
+	//  djel_request.html -> pvlc_med_calc.html
 	ctx.HTML(http.StatusOK, "pvlc_med_calc.html", gin.H{
 		"calculations":      services,
 		"calculationsCount": count,

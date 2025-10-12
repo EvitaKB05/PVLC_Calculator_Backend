@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ✅ ПЕРЕИМЕНОВАНО: AddToCart -> AddPvlcMedFormulaToCart
+// AddToCart -> AddPvlcMedFormulaToCart
 func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	// гет айди
 	idStr := ctx.Param("id")
@@ -23,7 +23,7 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	userID := uint(1)
 
 	// создать черновик
-	// ✅ ИСПРАВЛЕНО: GetOrCreatePvlcMedDraftCard -> GetOrCreateDraftPvlcMedCard
+	//  GetOrCreatePvlcMedDraftCard -> GetOrCreateDraftPvlcMedCard
 	card, err := h.Repository.GetOrCreateDraftPvlcMedCard(userID)
 	if err != nil {
 		logrus.Error("Error getting draft card:", err)
@@ -32,7 +32,7 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	}
 
 	// добавить в папку-корзину
-	// ✅ ИСПРАВЛЕНО: AddPvlcMedFormulaToCard -> AddPvlcMedFormulaToCard
+	//  AddPvlcMedFormulaToCard -> AddPvlcMedFormulaToCard
 	err = h.Repository.AddPvlcMedFormulaToCard(card.ID, uint(formulaID))
 	if err != nil {
 		logrus.Error("Error adding to cart:", err)
@@ -41,7 +41,7 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	}
 
 	// обновленное кол-во уведомление
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
+	//  GetPvlcMedFormulasCount -> GetPvlcMedFormulasCount
 	count, err := h.Repository.GetPvlcMedFormulasCount()
 	if err != nil {
 		logrus.Error("Error getting cart count:", err)
@@ -50,7 +50,7 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	}
 
 	// получаем ID черновика для ссылки
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
+	// GetPvlcMedDraftCardID -> GetDraftPvlcMedCardID
 	draftCardID, err := h.Repository.GetDraftPvlcMedCardID()
 	if err != nil {
 		logrus.Error("Error getting draft card ID:", err)
@@ -58,7 +58,7 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	}
 
 	// список услуг
-	// ✅ ИСПРАВЛЕНО: GetPvlcMedFormulas -> GetActivePvlcMedFormulas
+	//  GetPvlcMedFormulas -> GetActivePvlcMedFormulas
 	formulas, err := h.Repository.GetActivePvlcMedFormulas()
 	if err != nil {
 		logrus.Error(err)
@@ -69,12 +69,12 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	// шаблон конверт
 	var services []ServiceView
 	for _, formula := range formulas {
-		// ✅ ПЕРЕИМЕНОВАНО: convertToView -> convertFormulaToView
+		//  convertToView -> convertFormulaToView
 		services = append(services, convertFormulaToView(formula))
 	}
 
 	// обновление данных
-	// ✅ ПЕРЕИМЕНОВАНО: djel_patients.html -> pvlc_patients.html
+	// djel_patients.html -> pvlc_patients.html
 	ctx.HTML(http.StatusOK, "pvlc_patients.html", gin.H{
 		"time":              ctx.Query("time"), // сохраняем время
 		"services":          services,
@@ -84,10 +84,10 @@ func (h *Handler) AddPvlcMedFormulaToCart(ctx *gin.Context) {
 	})
 }
 
-// ✅ ПЕРЕИМЕНОВАНО: DeleteCart -> DeletePvlcMedCart
+// DeleteCart -> DeletePvlcMedCart
 func (h *Handler) DeletePvlcMedCart(ctx *gin.Context) {
 	// удалить корзину
-	// ✅ ИСПРАВЛЕНО: DeletePvlcMedDraftCard -> DeleteDraftPvlcMedCard
+	// DeletePvlcMedDraftCard -> DeleteDraftPvlcMedCard
 	err := h.Repository.DeleteDraftPvlcMedCard()
 	if err != nil {
 		logrus.Error("Error deleting cart:", err)
@@ -96,6 +96,6 @@ func (h *Handler) DeletePvlcMedCart(ctx *gin.Context) {
 	}
 
 	// редирект на главную
-	// ✅ ПЕРЕИМЕНОВАНО: /djel_patients -> /pvlc_patients
+	//  /djel_patients -> /pvlc_patients
 	ctx.Redirect(http.StatusFound, "/pvlc_patients")
 }
