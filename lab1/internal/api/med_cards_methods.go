@@ -1,7 +1,9 @@
+// internal/api/med_cards_methods.go
 package api
 
 import (
 	"lab1/internal/app/ds"
+	"lab1/internal/auth"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,13 +14,25 @@ import (
 
 // Домен: Медицинские карты (PvlcMedCards)
 
-// GET /api/cart/icon - иконка корзины
+// GetCartIcon godoc
+// @Summary Получение иконки корзины
+// @Description Возвращает информацию о корзине пользователя (количество items)
+// @Tags cart
+// @Produce json
+// @Success 200 {object} ds.CartIconResponse
+// @Failure 401 {object} map[string]string
+// @Router /api/cart/icon [get]
+// @Security BearerAuth
 func (a *API) GetCartIcon(c *gin.Context) {
-	// Фиксированный пользователь
-	userID := uint(1)
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
 
-	// Получаем черновик
-	card, err := a.repo.GetDraftPvlcMedCardByUserID(userID)
+	// Получаем черновик для текущего пользователя
+	card, err := a.repo.GetDraftPvlcMedCardByUserID(claims.UserID)
 	if err != nil {
 		// Если черновика нет - возвращаем пустую корзину
 		a.successResponse(c, ds.CartIconResponse{
@@ -41,15 +55,44 @@ func (a *API) GetCartIcon(c *gin.Context) {
 	})
 }
 
-// GET /api/pvlc-med-cards - список заявок (кроме удаленных и черновика)
+// GetPvlcMedCards godoc
+// @Summary Получение списка заявок
+// @Description Возвращает список заявок пользователя (для модераторов - все заявки)
+// @Tags medical-cards
+// @Produce json
+// @Param status query string false "Фильтр по статусу"
+// @Param date_from query string false "Фильтр по дате от"
+// @Param date_to query string false "Фильтр по дате до"
+// @Success 200 {array} ds.PvlcMedCardResponse
+// @Failure 401 {object} map[string]string
+// @Router /api/pvlc-med-cards [get]
+// @Security BearerAuth
 func (a *API) GetPvlcMedCards(c *gin.Context) {
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
+
 	var filter ds.PvlcMedCardFilter
 	if err := c.ShouldBindQuery(&filter); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные параметры фильтрации")
 		return
 	}
 
-	cards, err := a.repo.GetPvlcMedCardsWithFilter(filter)
+	var cards []ds.PvlcMedCard
+	var err error
+
+	// РАЗДЕЛЕНИЕ ДОСТУПА ПО РОЛЯМ - ДОБАВЛЕНО ДЛЯ ЛР4
+	if claims.IsModerator {
+		// Модератор видит все заявки
+		cards, err = a.repo.GetPvlcMedCardsForModerator(filter)
+	} else {
+		// Обычный пользователь видит только свои заявки
+		cards, err = a.repo.GetPvlcMedCardsByUserID(claims.UserID, filter)
+	}
+
 	if err != nil {
 		logrus.Error("Error getting pvlc med cards: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка получения заявок")
@@ -96,8 +139,26 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// GET /api/pvlc-med-cards/:id - одна заявка
+// GetPvlcMedCard godoc
+// @Summary Получение конкретной заявки
+// @Description Возвращает информацию о конкретной заявке
+// @Tags medical-cards
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Success 200 {object} ds.PvlcMedCardResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-cards/{id} [get]
+// @Security BearerAuth
 func (a *API) GetPvlcMedCard(c *gin.Context) {
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -108,6 +169,13 @@ func (a *API) GetPvlcMedCard(c *gin.Context) {
 	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
+		return
+	}
+
+	// ПРОВЕРКА ПРАВ ДОСТУПА - ДОБАВЛЕНО ДЛЯ ЛР4
+	// Пользователь может смотреть только свои заявки, модератор - все
+	if !claims.IsModerator && card.UserID != claims.UserID {
+		a.errorResponse(c, http.StatusForbidden, "Доступ запрещен")
 		return
 	}
 
@@ -152,8 +220,29 @@ func (a *API) GetPvlcMedCard(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// PUT /api/pvlc-med-cards/:id - изменение полей заявки
+// UpdatePvlcMedCard godoc
+// @Summary Обновление заявки
+// @Description Обновляет поля заявки (только для владельца)
+// @Tags medical-cards
+// @Accept json
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Param request body ds.UpdatePvlcMedCardRequest true "Данные для обновления"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-cards/{id} [put]
+// @Security BearerAuth
 func (a *API) UpdatePvlcMedCard(c *gin.Context) {
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -161,10 +250,8 @@ func (a *API) UpdatePvlcMedCard(c *gin.Context) {
 		return
 	}
 
-	var request struct {
-		PatientName string `json:"patient_name"`
-		DoctorName  string `json:"doctor_name"`
-	}
+	// ИСПРАВЛЕНО: используем именованную структуру вместо встроенной
+	var request ds.UpdatePvlcMedCardRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
 		return
@@ -173,6 +260,13 @@ func (a *API) UpdatePvlcMedCard(c *gin.Context) {
 	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
+		return
+	}
+
+	// ПРОВЕРКА ПРАВ ДОСТУПА - ДОБАВЛЕНО ДЛЯ ЛР4
+	// Только владелец может редактировать свою заявку
+	if card.UserID != claims.UserID {
+		a.errorResponse(c, http.StatusForbidden, "Доступ запрещен")
 		return
 	}
 
@@ -198,8 +292,27 @@ func (a *API) UpdatePvlcMedCard(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Заявка успешно обновлена"})
 }
 
-// PUT /api/pvlc-med-cards/:id/finalize - сформировать заявку
+// FinalizePvlcMedCard godoc
+// @Summary Формирование заявки
+// @Description Переводит заявку из статуса черновика в сформированную
+// @Tags medical-cards
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-cards/{id}/finalize [put]
+// @Security BearerAuth
 func (a *API) FinalizePvlcMedCard(c *gin.Context) {
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -210,6 +323,13 @@ func (a *API) FinalizePvlcMedCard(c *gin.Context) {
 	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
+		return
+	}
+
+	// ПРОВЕРКА ПРАВ ДОСТУПА - ДОБАВЛЕНО ДЛЯ ЛР4
+	// Только владелец может формировать свою заявку
+	if card.UserID != claims.UserID {
+		a.errorResponse(c, http.StatusForbidden, "Доступ запрещен")
 		return
 	}
 
@@ -246,8 +366,28 @@ func (a *API) FinalizePvlcMedCard(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Заявка успешно сформирована"})
 }
 
-// PUT /api/pvlc-med-cards/:id/complete - завершить/отклонить заявку
+// CompletePvlcMedCard godoc
+// @Summary Завершение/отклонение заявки
+// @Description Завершает или отклоняет заявку (только для модераторов)
+// @Tags medical-cards
+// @Accept json
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Param request body ds.CompletePvlcMedCardRequest true "Действие: complete или reject"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-cards/{id}/complete [put]
+// @Security BearerAuth
 func (a *API) CompletePvlcMedCard(c *gin.Context) {
+	// Проверка прав модератора выполняется в middleware RequireModerator
+	claims := auth.GetUserFromContext(c)
+	if claims == nil || !claims.IsModerator {
+		a.errorResponse(c, http.StatusForbidden, "Требуются права модератора")
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -255,9 +395,8 @@ func (a *API) CompletePvlcMedCard(c *gin.Context) {
 		return
 	}
 
-	var request struct {
-		Action string `json:"action" binding:"required"` // "complete" или "reject"
-	}
+	// ИСПРАВЛЕНО: используем именованную структуру вместо встроенной
+	var request ds.CompletePvlcMedCardRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
 		return
@@ -274,9 +413,6 @@ func (a *API) CompletePvlcMedCard(c *gin.Context) {
 		a.errorResponse(c, http.StatusBadRequest, "Можно завершать/отклонять только сформированные заявки")
 		return
 	}
-
-	// Фиксированный модератор (как требуется)
-	moderatorID := uint(2) // admin пользователь
 
 	now := time.Now()
 	if request.Action == "complete" {
@@ -298,7 +434,7 @@ func (a *API) CompletePvlcMedCard(c *gin.Context) {
 	}
 
 	card.CompletedAt = &now
-	card.ModeratorID = &moderatorID
+	card.ModeratorID = &claims.UserID // Сохраняем ID модератора
 
 	if err := a.repo.UpdatePvlcMedCard(&card); err != nil {
 		logrus.Error("Error completing pvlc med card: ", err)
@@ -313,8 +449,27 @@ func (a *API) CompletePvlcMedCard(c *gin.Context) {
 	})
 }
 
-// DELETE /api/pvlc-med-cards/:id - удаление заявки
+// DeletePvlcMedCard godoc
+// @Summary Удаление заявки
+// @Description Удаляет заявку (только черновики и только владельцем)
+// @Tags medical-cards
+// @Produce json
+// @Param id path int true "ID заявки"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-cards/{id} [delete]
+// @Security BearerAuth
 func (a *API) DeletePvlcMedCard(c *gin.Context) {
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -325,6 +480,13 @@ func (a *API) DeletePvlcMedCard(c *gin.Context) {
 	card, err := a.repo.GetPvlcMedCardByID(uint(id))
 	if err != nil {
 		a.errorResponse(c, http.StatusNotFound, "Заявка не найдена")
+		return
+	}
+
+	// ПРОВЕРКА ПРАВ ДОСТУПА - ДОБАВЛЕНО ДЛЯ ЛР4
+	// Только владелец может удалять свою заявку
+	if card.UserID != claims.UserID {
+		a.errorResponse(c, http.StatusForbidden, "Доступ запрещен")
 		return
 	}
 

@@ -1,0 +1,838 @@
+basePath: /api
+definitions:
+  api.LoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  api.LoginResponse:
+    properties:
+      expires_at:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/ds.MedUserResponse'
+    type: object
+  api.LogoutRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  ds.CartIconResponse:
+    properties:
+      med_card_id:
+        type: integer
+      med_item_count:
+        type: integer
+    type: object
+  ds.CompletePvlcMedCardRequest:
+    properties:
+      action:
+        description: '"complete" или "reject"'
+        type: string
+    required:
+    - action
+    type: object
+  ds.CreatePvlcMedFormulaRequest:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      formula:
+        type: string
+      gender:
+        type: string
+      max_age:
+        type: integer
+      min_age:
+        type: integer
+      title:
+        type: string
+    required:
+    - category
+    - formula
+    - gender
+    - max_age
+    - min_age
+    - title
+    type: object
+  ds.MedMmPvlcCalculationResponse:
+    properties:
+      description:
+        type: string
+      final_result:
+        type: number
+      formula:
+        type: string
+      image_url:
+        type: string
+      input_height:
+        type: number
+      pvlc_med_formula_id:
+        type: integer
+      title:
+        type: string
+    type: object
+  ds.MedUserResponse:
+    properties:
+      id:
+        type: integer
+      is_moderator:
+        type: boolean
+      login:
+        type: string
+    type: object
+  ds.PvlcMedCardResponse:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      doctor_name:
+        type: string
+      finalized_at:
+        type: string
+      id:
+        type: integer
+      med_calculations:
+        items:
+          $ref: '#/definitions/ds.MedMmPvlcCalculationResponse'
+        type: array
+      patient_name:
+        type: string
+      status:
+        type: string
+      total_result:
+        type: number
+    type: object
+  ds.PvlcMedFormulaResponse:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      formula:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_active:
+        type: boolean
+      max_age:
+        type: integer
+      min_age:
+        type: integer
+      title:
+        type: string
+    type: object
+  ds.UpdatePvlcMedCardRequest:
+    properties:
+      doctor_name:
+        type: string
+      patient_name:
+        type: string
+    type: object
+  ds.UpdatePvlcMedFormulaRequest:
+    properties:
+      category:
+        type: string
+      description:
+        type: string
+      formula:
+        type: string
+      gender:
+        type: string
+      is_active:
+        type: boolean
+      max_age:
+        type: integer
+      min_age:
+        type: integer
+      title:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@lungcalc.ru
+    name: API Support
+    url: http://localhost:8080
+  description: |-
+    API для расчета должной жизненной емкости легких (ДЖЕЛ)
+    Лабораторная работа 4 - Добавление аутентификации и авторизации
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Lung Capacity Calculation API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Выполняет вход пользователя и возвращает JWT токен
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Аутентификация пользователя
+      tags:
+      - auth
+  /api/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет JWT токен в черный список
+      parameters:
+      - description: Токен для выхода
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Выход пользователя
+      tags:
+      - auth
+  /api/auth/profile:
+    get:
+      description: Возвращает информацию о текущем пользователе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.MedUserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение профиля пользователя
+      tags:
+      - auth
+  /api/cart/icon:
+    get:
+      description: Возвращает информацию о корзине пользователя (количество items)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.CartIconResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение иконки корзины
+      tags:
+      - cart
+  /api/pvlc-med-cards:
+    get:
+      description: Возвращает список заявок пользователя (для модераторов - все заявки)
+      parameters:
+      - description: Фильтр по статусу
+        in: query
+        name: status
+        type: string
+      - description: Фильтр по дате от
+        in: query
+        name: date_from
+        type: string
+      - description: Фильтр по дате до
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.PvlcMedCardResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение списка заявок
+      tags:
+      - medical-cards
+  /api/pvlc-med-cards/{id}:
+    delete:
+      description: Удаляет заявку (только черновики и только владельцем)
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удаление заявки
+      tags:
+      - medical-cards
+    get:
+      description: Возвращает информацию о конкретной заявке
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.PvlcMedCardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Получение конкретной заявки
+      tags:
+      - medical-cards
+    put:
+      consumes:
+      - application/json
+      description: Обновляет поля заявки (только для владельца)
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.UpdatePvlcMedCardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Обновление заявки
+      tags:
+      - medical-cards
+  /api/pvlc-med-cards/{id}/complete:
+    put:
+      consumes:
+      - application/json
+      description: Завершает или отклоняет заявку (только для модераторов)
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Действие: complete или reject'
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.CompletePvlcMedCardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Завершение/отклонение заявки
+      tags:
+      - medical-cards
+  /api/pvlc-med-cards/{id}/finalize:
+    put:
+      description: Переводит заявку из статуса черновика в сформированную
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Формирование заявки
+      tags:
+      - medical-cards
+  /api/pvlc-med-formulas:
+    get:
+      description: Возвращает список формул с возможностью фильтрации
+      parameters:
+      - description: Фильтр по категории
+        in: query
+        name: category
+        type: string
+      - description: Фильтр по полу
+        in: query
+        name: gender
+        type: string
+      - description: Минимальный возраст
+        in: query
+        name: min_age
+        type: integer
+      - description: Максимальный возраст
+        in: query
+        name: max_age
+        type: integer
+      - description: Активные формулы
+        in: query
+        name: active
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.PvlcMedFormulaResponse'
+            type: array
+      summary: Получение списка формул
+      tags:
+      - formulas
+    post:
+      consumes:
+      - application/json
+      description: Создает новую формулу для расчета ДЖЕЛ (только для модераторов)
+      parameters:
+      - description: Данные формулы
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.CreatePvlcMedFormulaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Создание новой формулы
+      tags:
+      - formulas
+  /api/pvlc-med-formulas/{id}:
+    delete:
+      description: Удаляет формулу ДЖЕЛ (только для модераторов)
+      parameters:
+      - description: ID формулы
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Удаление формулы
+      tags:
+      - formulas
+    get:
+      description: Возвращает информацию о конкретной формуле ДЖЕЛ
+      parameters:
+      - description: ID формулы
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.PvlcMedFormulaResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение конкретной формулы
+      tags:
+      - formulas
+    put:
+      consumes:
+      - application/json
+      description: Обновляет существующую формулу ДЖЕЛ (только для модераторов)
+      parameters:
+      - description: ID формулы
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ds.UpdatePvlcMedFormulaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Обновление формулы
+      tags:
+      - formulas
+  /api/pvlc-med-formulas/{id}/add-to-cart:
+    post:
+      description: Добавляет формулу в заявку-черновик пользователя
+      parameters:
+      - description: ID формулы
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Добавление формулы в корзину
+      tags:
+      - formulas
+  /api/pvlc-med-formulas/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает изображение для формулы ДЖЕЛ в MinIO (только для модераторов)
+      parameters:
+      - description: ID формулы
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Изображение формулы
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Загрузка изображения для формулы
+      tags:
+      - formulas
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT токен для аутентификации. Формат: "Bearer {token}"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

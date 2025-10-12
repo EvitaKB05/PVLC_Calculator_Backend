@@ -1,3 +1,4 @@
+// internal/app/ds/pvlc_med_requests.go
 package ds
 
 // Запросы для API
@@ -49,4 +50,17 @@ type MedUserRegistrationRequest struct {
 
 type UpdateMedUserRequest struct {
 	Password string `json:"password"`
+}
+
+// ДОБАВЛЕНО ДЛЯ ИСПРАВЛЕНИЯ ОШИБОК SWAGGER
+
+// UpdatePvlcMedCardRequest - запрос на обновление заявки
+type UpdatePvlcMedCardRequest struct {
+	PatientName string `json:"patient_name"`
+	DoctorName  string `json:"doctor_name"`
+}
+
+// CompletePvlcMedCardRequest - запрос на завершение заявки
+type CompletePvlcMedCardRequest struct {
+	Action string `json:"action" binding:"required"` // "complete" или "reject"
 }

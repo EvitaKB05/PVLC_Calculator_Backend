@@ -1,22 +1,40 @@
+// internal/api/pvlc_server.go
 package api
 
 import (
 	"lab1/internal/app/handler"
 	"lab1/internal/app/repository"
+	"lab1/internal/auth"
+	"lab1/internal/redis"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// StartServer запускает HTTP сервер
+// ПОЛНОСТЬЮ ПЕРЕПИСАН ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
 func StartServer() {
 	log.Println("Starting server")
 
+	// Инициализация репозитория
 	repo, err := repository.NewRepository()
 	if err != nil {
 		logrus.Fatal("Ошибка инициализации репозитория: ", err)
 	}
-	// ДОБАВЬТЕ ЭТОТ БЛОК - инициализация MinIO
+
+	// Инициализация Redis клиента
+	redisClient, err := redis.NewRedisClient("localhost", 6379, "", 0)
+	if err != nil {
+		logrus.Fatal("Ошибка инициализации Redis: ", err)
+	}
+	defer redisClient.Close()
+
+	// Инициализация аутентификации
+	auth.InitAuth(redisClient)
+
 	log.Println("Initializing MinIO bucket...")
 	if err := repo.InitMinIOBucket(); err != nil {
 		logrus.Warn("MinIO bucket initialization failed: ", err)
@@ -26,72 +44,90 @@ func StartServer() {
 
 	handler := handler.NewHandler(repo)
 	api := NewAPI(repo)
+	api.redis = redisClient // Сохраняем Redis клиент в API
 
 	r := gin.Default()
+
+	// Swagger документация - ДОБАВЛЕНО ДЛЯ ЛР4
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// HTML routes (сохраняем существующие)
 	r.LoadHTMLGlob("templates/*")
 	r.Static("/static", "./resources")
 
-	// GET
+	// GET routes для HTML интерфейса
 	r.GET("/", handler.GetPvlcPatients)
 	r.GET("/pvlc_patients", handler.GetPvlcPatients)
 	r.GET("/pvlc_patient/:id", handler.GetPvlcPatient)
 	r.GET("/pvlc_med_calc/:id", handler.GetPvlcMedCalc)
 
-	// POST
+	// POST routes для HTML интерфейса
 	r.POST("/pvlc_patient/:id/add", handler.AddPvlcMedFormulaToCart)
 	r.POST("/pvlc_med_calc/delete", handler.DeletePvlcMedCart)
-	// API Routes
+
+	// API Routes с аутентификацией
 	apiGroup := r.Group("/api")
+	apiGroup.Use(auth.AuthMiddleware()) // Применяем middleware аутентификации ко всем API routes
 	{
-		// Pvlc Med Formulas domain
-		formulas := apiGroup.Group("/pvlc-med-formulas")
+		// Public routes (не требуют аутентификации)
+		public := apiGroup.Group("")
 		{
-			formulas.GET("", api.GetPvlcMedFormulas)
-			formulas.GET("/:id", api.GetPvlcMedFormula)
-			formulas.POST("", api.CreatePvlcMedFormula)
-			formulas.PUT("/:id", api.UpdatePvlcMedFormula)
-			formulas.DELETE("/:id", api.DeletePvlcMedFormula)
-			formulas.POST("/:id/image", api.UploadPvlcMedFormulaImage)
-			formulas.POST("/:id/add-to-cart", api.AddPvlcMedFormulaToCart)
+			public.POST("/auth/login", api.Login)                       // Аутентификация
+			public.GET("/pvlc-med-formulas", api.GetPvlcMedFormulas)    // Список формул
+			public.GET("/pvlc-med-formulas/:id", api.GetPvlcMedFormula) // Конкретная формула
 		}
 
-		// Pvlc Med Cards domain
-		cards := apiGroup.Group("/pvlc-med-cards")
+		// Auth required routes (требуют аутентификации)
+		authRequired := apiGroup.Group("")
+		authRequired.Use(auth.RequireAuth()) // Требует валидный JWT токен
 		{
-			cards.GET("", api.GetPvlcMedCards)
-			cards.GET("/:id", api.GetPvlcMedCard)
-			cards.PUT("/:id", api.UpdatePvlcMedCard)
-			cards.PUT("/:id/finalize", api.FinalizePvlcMedCard)
-			cards.PUT("/:id/complete", api.CompletePvlcMedCard)
-			cards.DELETE("/:id", api.DeletePvlcMedCard)
+			// Auth routes
+			authRequired.POST("/auth/logout", api.Logout)     // Выход
+			authRequired.GET("/auth/profile", api.GetProfile) // Профиль
+
+			// Cart routes
+			authRequired.GET("/cart/icon", api.GetCartIcon) // Иконка корзины
+
+			// Pvlc Med Formulas routes
+			authRequired.POST("/pvlc-med-formulas/:id/add-to-cart", api.AddPvlcMedFormulaToCart) // Добавление в корзину
+
+			// Pvlc Med Cards routes (user specific)
+			authRequired.GET("/pvlc-med-cards", api.GetPvlcMedCards)                  // Список заявок пользователя
+			authRequired.GET("/pvlc-med-cards/:id", api.GetPvlcMedCard)               // Конкретная заявка
+			authRequired.PUT("/pvlc-med-cards/:id", api.UpdatePvlcMedCard)            // Обновление заявки
+			authRequired.PUT("/pvlc-med-cards/:id/finalize", api.FinalizePvlcMedCard) // Формирование заявки
+			authRequired.DELETE("/pvlc-med-cards/:id", api.DeletePvlcMedCard)         // Удаление заявки
+
+			// Med Mm Pvlc Calculations routes
+			authRequired.DELETE("/med-mm-pvlc-calculations", api.DeleteMedMmPvlcCalculation) // Удаление расчета
+			authRequired.PUT("/med-mm-pvlc-calculations", api.UpdateMedMmPvlcCalculation)    // Обновление расчета
+
+			// Med Users routes
+			authRequired.GET("/med-users/profile", api.GetMedUserProfile)    // Профиль пользователя
+			authRequired.PUT("/med-users/profile", api.UpdateMedUserProfile) // Обновление профиля
+			authRequired.POST("/med-users/logout", api.LogoutMedUser)        // Выход (старый endpoint)
 		}
 
-		// Cart domain
-		cart := apiGroup.Group("/cart")
+		// Moderator only routes (требуют права модератора)
+		moderator := apiGroup.Group("")
+		moderator.Use(auth.RequireModerator()) // Требует права модератора
 		{
-			cart.GET("/icon", api.GetCartIcon)
-		}
+			// Pvlc Med Formulas management
+			moderator.POST("/pvlc-med-formulas", api.CreatePvlcMedFormula)                // Создание формулы
+			moderator.PUT("/pvlc-med-formulas/:id", api.UpdatePvlcMedFormula)             // Обновление формулы
+			moderator.DELETE("/pvlc-med-formulas/:id", api.DeletePvlcMedFormula)          // Удаление формулы
+			moderator.POST("/pvlc-med-formulas/:id/image", api.UploadPvlcMedFormulaImage) // Загрузка изображения
 
-		// Med Mm Pvlc Calculations domain (M-M)
-		calculations := apiGroup.Group("/med-mm-pvlc-calculations")
-		{
-			calculations.DELETE("", api.DeleteMedMmPvlcCalculation)
-			calculations.PUT("", api.UpdateMedMmPvlcCalculation)
-		}
+			// Pvlc Med Cards moderation
+			moderator.PUT("/pvlc-med-cards/:id/complete", api.CompletePvlcMedCard) // Завершение/отклонение заявки
 
-		// Med Users domain
-		users := apiGroup.Group("/med-users")
-		{
-			users.POST("/register", api.RegisterMedUser)
-			users.GET("/profile", api.GetMedUserProfile)
-			users.PUT("/profile", api.UpdateMedUserProfile)
-			users.POST("/login", api.LoginMedUser)
-			users.POST("/logout", api.LogoutMedUser)
+			// User management
+			moderator.POST("/med-users/register", api.RegisterMedUser) // Регистрация пользователя
 		}
 	}
 
-	r.Run()
+	log.Println("Server starting on :8080")
+	log.Println("Swagger UI available at: http://localhost:8080/swagger/index.html")
+	r.Run(":8080")
 	log.Println("Server down")
 }

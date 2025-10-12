@@ -1,3 +1,4 @@
+// cmd/migrate/main.go
 package main
 
 import (
@@ -22,7 +23,7 @@ func main() {
 		panic("failed to connect database: " + err.Error())
 	}
 
-	// Выполняем миграции (создание таблиц)
+	// ВЫПОЛНЯЕМ МИГРАЦИИ С ОБНОВЛЕННЫМИ МОДЕЛЯМИ ДЛЯ ЛР4
 	err = db.AutoMigrate(
 		&ds.MedUser{},
 		&ds.PvlcMedFormula{},
@@ -34,4 +35,9 @@ func main() {
 	}
 
 	println("Миграции успешно выполнены!")
+	println("Созданы таблицы для лабораторной работы 4:")
+	println("- med_users (с полем created_by)")
+	println("- pvlc_med_formulas")
+	println("- pvlc_med_cards (с полем user_id)")
+	println("- med_mm_pvlc_calculations")
 }

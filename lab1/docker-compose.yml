@@ -1,3 +1,4 @@
+# docker-compose.yml
 version: '3.8'
 
 # Settings and configurations that are common for all containers
@@ -97,6 +98,15 @@ services:
       /usr/bin/mc anonymous set public myminio/pics || true;
       echo 'Minio initialized successfully';"
 
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+
 ## By default this config uses default local driver,
 ## For custom volumes replace with volume driver configuration.
 volumes:
@@ -109,3 +119,4 @@ volumes:
   data4-1:
   data4-2:
   postgres_data:
+  redis-data:

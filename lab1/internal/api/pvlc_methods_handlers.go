@@ -1,8 +1,11 @@
+// internal/api/pvlc_methods_handlers.go
 package api
 
 import (
 	"lab1/internal/app/ds"
 	"lab1/internal/app/repository"
+	"lab1/internal/auth"
+	"lab1/internal/redis"
 	"net/http"
 	"strconv"
 
@@ -10,15 +13,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// API - структура API с зависимостями
+// ОБНОВЛЕНО ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4 - добавлено поле redis
 type API struct {
-	repo *repository.Repository
+	repo  *repository.Repository
+	redis *redis.Client
 }
 
+// NewAPI создает новый экземпляр API
 func NewAPI(repo *repository.Repository) *API {
 	return &API{repo: repo}
 }
 
-// Вспомогательные функции
+// Вспомогательные функции для ответов
 func (a *API) successResponse(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": data,
@@ -33,7 +40,18 @@ func (a *API) errorResponse(c *gin.Context, statusCode int, message string) {
 
 // Домен: Формулы ДЖЕЛ (PvlcMedFormulas)
 
-// GET /api/pvlc-med-formulas - список формул с фильтрацией
+// GetPvlcMedFormulas godoc
+// @Summary Получение списка формул
+// @Description Возвращает список формул с возможностью фильтрации
+// @Tags formulas
+// @Produce json
+// @Param category query string false "Фильтр по категории"
+// @Param gender query string false "Фильтр по полу"
+// @Param min_age query int false "Минимальный возраст"
+// @Param max_age query int false "Максимальный возраст"
+// @Param active query bool false "Активные формулы"
+// @Success 200 {array} ds.PvlcMedFormulaResponse
+// @Router /api/pvlc-med-formulas [get]
 func (a *API) GetPvlcMedFormulas(c *gin.Context) {
 	var filter ds.PvlcMedFormulaFilter
 	if err := c.ShouldBindQuery(&filter); err != nil {
@@ -67,7 +85,16 @@ func (a *API) GetPvlcMedFormulas(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// GET /api/pvlc-med-formulas/:id - одна формула
+// GetPvlcMedFormula godoc
+// @Summary Получение конкретной формулы
+// @Description Возвращает информацию о конкретной формуле ДЖЕЛ
+// @Tags formulas
+// @Produce json
+// @Param id path int true "ID формулы"
+// @Success 200 {object} ds.PvlcMedFormulaResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-formulas/{id} [get]
 func (a *API) GetPvlcMedFormula(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -99,8 +126,20 @@ func (a *API) GetPvlcMedFormula(c *gin.Context) {
 	a.successResponse(c, response)
 }
 
-// POST /api/pvlc-med-formulas - добавление формулы
+// CreatePvlcMedFormula godoc
+// @Summary Создание новой формулы
+// @Description Создает новую формулу для расчета ДЖЕЛ (только для модераторов)
+// @Tags formulas
+// @Accept json
+// @Produce json
+// @Param request body ds.CreatePvlcMedFormulaRequest true "Данные формулы"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Router /api/pvlc-med-formulas [post]
+// @Security BearerAuth
 func (a *API) CreatePvlcMedFormula(c *gin.Context) {
+	// Проверка прав выполняется в middleware RequireModerator
 	var request ds.CreatePvlcMedFormulaRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
@@ -127,8 +166,22 @@ func (a *API) CreatePvlcMedFormula(c *gin.Context) {
 	a.successResponse(c, gin.H{"id": formula.ID})
 }
 
-// PUT /api/pvlc-med-formulas/:id - изменение формулы
+// UpdatePvlcMedFormula godoc
+// @Summary Обновление формулы
+// @Description Обновляет существующую формулу ДЖЕЛ (только для модераторов)
+// @Tags formulas
+// @Accept json
+// @Produce json
+// @Param id path int true "ID формулы"
+// @Param request body ds.UpdatePvlcMedFormulaRequest true "Данные для обновления"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-formulas/{id} [put]
+// @Security BearerAuth
 func (a *API) UpdatePvlcMedFormula(c *gin.Context) {
+	// Проверка прав выполняется в middleware RequireModerator
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -183,8 +236,20 @@ func (a *API) UpdatePvlcMedFormula(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Формула успешно обновлена"})
 }
 
-// DELETE /api/pvlc-med-formulas/:id - удаление формулы
+// DeletePvlcMedFormula godoc
+// @Summary Удаление формулы
+// @Description Удаляет формулу ДЖЕЛ (только для модераторов)
+// @Tags formulas
+// @Produce json
+// @Param id path int true "ID формулы"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-formulas/{id} [delete]
+// @Security BearerAuth
 func (a *API) DeletePvlcMedFormula(c *gin.Context) {
+	// Проверка прав выполняется в middleware RequireModerator
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -216,8 +281,22 @@ func (a *API) DeletePvlcMedFormula(c *gin.Context) {
 	a.successResponse(c, gin.H{"message": "Формула успешно удалена"})
 }
 
-// POST /api/pvlc-med-formulas/:id/image - добавление изображения
+// UploadPvlcMedFormulaImage godoc
+// @Summary Загрузка изображения для формулы
+// @Description Загружает изображение для формулы ДЖЕЛ в MinIO (только для модераторов)
+// @Tags formulas
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path int true "ID формулы"
+// @Param image formData file true "Изображение формулы"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/pvlc-med-formulas/{id}/image [post]
+// @Security BearerAuth
 func (a *API) UploadPvlcMedFormulaImage(c *gin.Context) {
+	// Проверка прав выполняется в middleware RequireModerator
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
@@ -267,8 +346,25 @@ func (a *API) UploadPvlcMedFormulaImage(c *gin.Context) {
 	})
 }
 
-// POST /api/pvlc-med-formulas/:id/add-to-cart - добавление в заявку-черновик
+// AddPvlcMedFormulaToCart godoc
+// @Summary Добавление формулы в корзину
+// @Description Добавляет формулу в заявку-черновик пользователя
+// @Tags formulas
+// @Produce json
+// @Param id path int true "ID формулы"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /api/pvlc-med-formulas/{id}/add-to-cart [post]
+// @Security BearerAuth
 func (a *API) AddPvlcMedFormulaToCart(c *gin.Context) {
+	// Проверка аутентификации выполняется в middleware RequireAuth
+	claims := auth.GetUserFromContext(c)
+	if claims == nil {
+		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
+		return
+	}
+
 	idStr := c.Param("id")
 	formulaID, err := strconv.Atoi(idStr)
 	if err != nil || formulaID <= 0 {
@@ -276,15 +372,19 @@ func (a *API) AddPvlcMedFormulaToCart(c *gin.Context) {
 		return
 	}
 
-	// Фиксированный пользователь (как требуется в задании)
-	userID := uint(1)
-
-	// Создаем или получаем черновик
-	card, err := a.repo.GetOrCreateDraftPvlcMedCard(userID)
+	// Создаем или получаем черновик для текущего пользователя
+	card, err := a.repo.GetOrCreateDraftPvlcMedCard(claims.UserID)
 	if err != nil {
 		logrus.Error("Error getting draft pvlc med card: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка доступа к корзине")
 		return
+	}
+
+	// Обновляем владельца заявки (на случай если черновик был создан до аутентификации)
+	if card.UserID != claims.UserID {
+		if err := a.repo.UpdatePvlcMedCardUserID(card.ID, claims.UserID); err != nil {
+			logrus.Warn("Error updating card owner: ", err)
+		}
 	}
 
 	// Добавляем формулу в заявку
