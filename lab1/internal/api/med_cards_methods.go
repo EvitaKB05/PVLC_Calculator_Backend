@@ -99,7 +99,9 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 		return
 	}
 
-	var response []ds.PvlcMedCardResponse
+	// ИСПРАВЛЕНО: гарантируем возврат пустого массива вместо null
+	response := make([]ds.PvlcMedCardResponse, 0)
+
 	for _, card := range cards {
 		cardResponse := ds.PvlcMedCardResponse{
 			ID:          card.ID,
@@ -120,6 +122,8 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 		// Получаем расчеты для этой заявки
 		calculations, err := a.repo.GetMedMmPvlcCalculationsByCardID(card.ID)
 		if err == nil {
+			// ИСПРАВЛЕНО: гарантируем пустой массив вместо nil для MedCalculations
+			cardResponse.MedCalculations = make([]ds.MedMmPvlcCalculationResponse, 0)
 			for _, calc := range calculations {
 				cardResponse.MedCalculations = append(cardResponse.MedCalculations, ds.MedMmPvlcCalculationResponse{
 					PvlcMedFormulaID: calc.PvlcMedFormulaID,
@@ -131,6 +135,9 @@ func (a *API) GetPvlcMedCards(c *gin.Context) {
 					FinalResult:      calc.FinalResult,
 				})
 			}
+		} else {
+			// Если ошибка при получении расчетов, устанавливаем пустой массив
+			cardResponse.MedCalculations = make([]ds.MedMmPvlcCalculationResponse, 0)
 		}
 
 		response = append(response, cardResponse)
