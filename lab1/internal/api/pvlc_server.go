@@ -6,12 +6,31 @@ import (
 	"lab1/internal/auth"
 	"lab1/internal/redis"
 	"log"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// debugHeadersMiddleware логирует все заголовки запроса для отладки
+func debugHeadersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Логируем только API запросы
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			logrus.Info("=== HEADERS DEBUG ===")
+			logrus.Info("Request: ", c.Request.Method, " ", c.Request.URL.Path)
+			for name, values := range c.Request.Header {
+				for _, value := range values {
+					logrus.Infof("Header: %s = %s", name, value)
+				}
+			}
+			logrus.Info("=== END HEADERS DEBUG ===")
+		}
+		c.Next()
+	}
+}
 
 // StartServer запускает HTTP сервер
 // ПОЛНОСТЬЮ ПЕРЕПИСАН ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
@@ -48,6 +67,9 @@ func StartServer() {
 
 	r := gin.Default()
 
+	// ДОБАВЛЕНО: middleware для отладки заголовков
+	r.Use(debugHeadersMiddleware())
+
 	// Swagger документация - ДОБАВЛЕНО ДЛЯ ЛР4
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -66,7 +88,9 @@ func StartServer() {
 	r.POST("/pvlc_med_calc/delete", handler.DeletePvlcMedCart)
 
 	// API Routes - ИСПРАВЛЕНО: убираем дублирование /api в группе
+	// КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: применяем AuthMiddleware ко всей группе API
 	apiGroup := r.Group("/api")
+	apiGroup.Use(auth.AuthMiddleware()) // ДОБАВЛЕНО: применяем аутентификацию ко всем API запросам
 	{
 		// Public routes (не требуют аутентификации)
 		public := apiGroup.Group("")

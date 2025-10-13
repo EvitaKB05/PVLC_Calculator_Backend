@@ -5,6 +5,8 @@ import (
 
 	_ "lab1/docs" // Swagger docs - ДОБАВЛЕНО ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
 	"lab1/internal/api"
+
+	"github.com/sirupsen/logrus"
 )
 
 // @title Lung Capacity Calculation API
@@ -30,6 +32,12 @@ import (
 // main - точка входа приложения
 // ОБНОВЛЕНО ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4 - добавлены Swagger аннотации
 func main() {
+	// Включаем подробное логирование для отладки
+	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+
 	log.Println("Application start!")
 	api.StartServer()
 	log.Println("Application terminated!")

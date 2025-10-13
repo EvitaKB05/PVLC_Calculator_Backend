@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/sirupsen/logrus"
 )
 
 // Client - обертка для Redis клиента
@@ -31,6 +32,7 @@ func NewRedisClient(host string, port int, password string, db int) (*Client, er
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
+	logrus.Info("Redis client connected successfully")
 	return &Client{client: rdb}, nil
 }
 
@@ -51,16 +53,33 @@ func (c *Client) DeleteSession(ctx context.Context, sessionID string) error {
 
 // WriteJWTToBlacklist добавляет JWT токен в черный список
 func (c *Client) WriteJWTToBlacklist(ctx context.Context, jwtStr string, jwtTTL time.Duration) error {
-	return c.client.Set(ctx, "jwt_blacklist:"+jwtStr, true, jwtTTL).Err()
+	key := "jwt_blacklist:" + jwtStr
+	err := c.client.Set(ctx, key, true, jwtTTL).Err()
+	if err != nil {
+		logrus.Error("Error writing JWT to blacklist: ", err)
+		return err
+	}
+	logrus.Info("JWT added to blacklist, key: ", key[:20]+"...")
+	return nil
 }
 
 // CheckJWTInBlacklist проверяет, находится ли JWT токен в черном списке
 func (c *Client) CheckJWTInBlacklist(ctx context.Context, jwtStr string) (bool, error) {
-	result, err := c.client.Exists(ctx, "jwt_blacklist:"+jwtStr).Result()
+	key := "jwt_blacklist:" + jwtStr
+	result, err := c.client.Exists(ctx, key).Result()
 	if err != nil {
+		logrus.Error("Error checking JWT in blacklist: ", err)
 		return false, err
 	}
-	return result > 0, nil
+
+	exists := result > 0
+	if exists {
+		logrus.Debug("JWT found in blacklist: ", key[:20]+"...")
+	} else {
+		logrus.Debug("JWT not found in blacklist: ", key[:20]+"...")
+	}
+
+	return exists, nil
 }
 
 // Close закрывает соединение с Redis

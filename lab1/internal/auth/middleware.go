@@ -50,14 +50,20 @@ func GenerateToken(userID uint, login string, isModerator bool) (string, error) 
 func ParseToken(tokenString string) (*ds.JWTClaims, error) {
 	// ИСПРАВЛЕНО: добавляем проверку на nil redisClient
 	if redisClient == nil {
+		logrus.Warn("Redis client is nil in ParseToken")
 		return nil, errors.New("redis client not initialized")
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		// ИСПРАВЛЕНО: проверяем метод подписи
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
 		return []byte(jwtSecret), nil
 	})
 
 	if err != nil {
+		logrus.Warn("JWT parsing error:", err)
 		return nil, err
 	}
 
@@ -65,9 +71,11 @@ func ParseToken(tokenString string) (*ds.JWTClaims, error) {
 		// Проверяем, не в черном списке ли токен
 		inBlacklist, err := redisClient.CheckJWTInBlacklist(context.Background(), tokenString)
 		if err != nil {
+			logrus.Warn("Error checking JWT blacklist:", err)
 			return nil, err
 		}
 		if inBlacklist {
+			logrus.Warn("Token is in blacklist")
 			return nil, errors.New("token revoked")
 		}
 		return claims, nil
@@ -75,26 +83,61 @@ func ParseToken(tokenString string) (*ds.JWTClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
+// extractTokenFromHeader извлекает токен из заголовка Authorization
+// ИСПРАВЛЕНО: обрабатываем разные форматы заголовков
+func extractTokenFromHeader(authHeader string) (string, error) {
+	if authHeader == "" {
+		return "", errors.New("authorization header is empty")
+	}
+
+	// Убираем лишние пробелы
+	authHeader = strings.TrimSpace(authHeader)
+
+	// Проверяем разные форматы
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		return authHeader[len("Bearer "):], nil
+	} else if strings.HasPrefix(authHeader, "bearer ") {
+		return authHeader[len("bearer "):], nil
+	} else if strings.HasPrefix(authHeader, "Token ") {
+		return authHeader[len("Token "):], nil
+	} else if strings.HasPrefix(authHeader, "token ") {
+		return authHeader[len("token "):], nil
+	} else {
+		// Если нет префикса, возможно токен передан без префикса
+		// Проверяем, похож ли на JWT (содержит точки)
+		if strings.Count(authHeader, ".") == 2 {
+			return authHeader, nil
+		}
+		return "", errors.New("invalid authorization header format")
+	}
+}
+
 // AuthMiddleware - middleware для проверки JWT токена
 // ДОБАВЛЕНО ДЛЯ ЛАБОРАТОРНОЙ РАБОТЫ 4
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logrus.Debug("AuthMiddleware started for path: ", c.Request.URL.Path)
+
 		authHeader := c.GetHeader("Authorization")
+		logrus.Debug("Raw Authorization header: '", authHeader, "'")
+
 		if authHeader == "" {
+			logrus.Debug("No Authorization header found")
 			// Если заголовка нет, продолжаем без аутентификации
 			c.Next()
 			return
 		}
 
-		// Проверяем формат заголовка
-		if !strings.HasPrefix(authHeader, jwtPrefix) {
-			logrus.Warn("Invalid authorization header format")
+		// Извлекаем токен из заголовка
+		tokenString, err := extractTokenFromHeader(authHeader)
+		if err != nil {
+			logrus.Warn("Error extracting token from header: ", err)
 			c.Next()
 			return
 		}
 
-		// Извлекаем токен
-		tokenString := authHeader[len(jwtPrefix):]
+		logrus.Debug("Token extracted: ", tokenString[:10]+"...") // Логируем только начало токена
+
 		claims, err := ParseToken(tokenString)
 		if err != nil {
 			logrus.Warn("Invalid token: ", err)
@@ -104,6 +147,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Сохраняем claims в контексте
 		c.Set(AuthUserKey, claims)
+		logrus.Debug("User claims set in context: ", claims.UserID, " ", claims.Login)
+
 		c.Next()
 	}
 }
@@ -111,12 +156,25 @@ func AuthMiddleware() gin.HandlerFunc {
 // RequireAuth - middleware, требующий аутентификации
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// ИСПРАВЛЕНА ОШИБКА: используем пустой идентификатор для переменной, которая не используется
-		if _, exists := c.Get(AuthUserKey); !exists {
+		logrus.Debug("RequireAuth started for path: ", c.Request.URL.Path)
+
+		user, exists := c.Get(AuthUserKey)
+		if !exists {
+			logrus.Warn("No user found in context for protected route")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Требуется аутентификация"})
 			c.Abort()
 			return
 		}
+
+		claims, ok := user.(*ds.JWTClaims)
+		if !ok {
+			logrus.Warn("Invalid user type in context")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Неверный формат аутентификации"})
+			c.Abort()
+			return
+		}
+
+		logrus.Debug("User authenticated: ", claims.UserID, " ", claims.Login)
 		c.Next()
 	}
 }
@@ -124,8 +182,11 @@ func RequireAuth() gin.HandlerFunc {
 // RequireModerator - middleware, требующий прав модератора
 func RequireModerator() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		logrus.Debug("RequireModerator started for path: ", c.Request.URL.Path)
+
 		user, exists := c.Get(AuthUserKey)
 		if !exists {
+			logrus.Warn("No user found in context for moderator route")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Требуется аутентификация"})
 			c.Abort()
 			return
@@ -133,10 +194,13 @@ func RequireModerator() gin.HandlerFunc {
 
 		claims, ok := user.(*ds.JWTClaims)
 		if !ok || !claims.IsModerator {
+			logrus.Warn("User is not moderator: ", claims.Login)
 			c.JSON(http.StatusForbidden, gin.H{"error": "Требуются права модератора"})
 			c.Abort()
 			return
 		}
+
+		logrus.Debug("Moderator authenticated: ", claims.UserID, " ", claims.Login)
 		c.Next()
 	}
 }
@@ -145,10 +209,12 @@ func RequireModerator() gin.HandlerFunc {
 func GetUserFromContext(c *gin.Context) *ds.JWTClaims {
 	user, exists := c.Get(AuthUserKey)
 	if !exists {
+		logrus.Debug("No user found in context")
 		return nil
 	}
 	claims, ok := user.(*ds.JWTClaims)
 	if !ok {
+		logrus.Warn("Invalid user type in context")
 		return nil
 	}
 	return claims

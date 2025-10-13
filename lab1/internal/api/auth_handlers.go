@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"lab1/internal/app/ds"
@@ -82,6 +83,7 @@ func (a *API) Login(c *gin.Context) {
 		ExpiresAt: time.Now().Add(24 * time.Hour),
 	}
 
+	logrus.Info("User logged in successfully: ", user.Login)
 	a.successResponse(c, response)
 }
 
@@ -110,14 +112,29 @@ func (a *API) Logout(c *gin.Context) {
 		return
 	}
 
+	// ДОБАВЛЕНО: извлекаем токен из заголовка Authorization, если не передан в теле
+	tokenToBlacklist := req.Token
+	if tokenToBlacklist == "" {
+		authHeader := c.GetHeader("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			tokenToBlacklist = authHeader[len("Bearer "):]
+		}
+	}
+
+	if tokenToBlacklist == "" {
+		a.errorResponse(c, http.StatusBadRequest, "Токен не предоставлен")
+		return
+	}
+
 	// Добавляем токен в черный список на 24 часа
-	err := a.redis.WriteJWTToBlacklist(c.Request.Context(), req.Token, 24*time.Hour)
+	err := a.redis.WriteJWTToBlacklist(c.Request.Context(), tokenToBlacklist, 24*time.Hour)
 	if err != nil {
 		logrus.Error("Error adding token to blacklist: ", err)
 		a.errorResponse(c, http.StatusInternalServerError, "Ошибка выхода из системы")
 		return
 	}
 
+	logrus.Info("User logged out successfully, token blacklisted")
 	a.successResponse(c, gin.H{"message": "Успешный выход из системы"})
 }
 
@@ -133,12 +150,14 @@ func (a *API) Logout(c *gin.Context) {
 func (a *API) GetProfile(c *gin.Context) {
 	claims := auth.GetUserFromContext(c)
 	if claims == nil {
+		logrus.Warn("GetProfile: no user claims in context")
 		a.errorResponse(c, http.StatusUnauthorized, "Требуется аутентификация")
 		return
 	}
 
 	user, err := a.repo.GetMedUserByID(claims.UserID)
 	if err != nil {
+		logrus.Warn("GetProfile: user not found in database: ", claims.UserID)
 		a.errorResponse(c, http.StatusNotFound, "Пользователь не найден")
 		return
 	}
@@ -149,5 +168,6 @@ func (a *API) GetProfile(c *gin.Context) {
 		IsModerator: user.IsModerator,
 	}
 
+	logrus.Debug("GetProfile successful for user: ", user.Login)
 	a.successResponse(c, response)
 }
