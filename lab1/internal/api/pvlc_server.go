@@ -1,4 +1,3 @@
-// internal/api/pvlc_server.go
 package api
 
 import (
@@ -43,8 +42,9 @@ func StartServer() {
 	}
 
 	handler := handler.NewHandler(repo)
-	api := NewAPI(repo)
-	api.redis = redisClient // Сохраняем Redis клиент в API
+
+	// ИСПРАВЛЕНО: передаем Redis клиент при создании API
+	api := NewAPI(repo, redisClient)
 
 	r := gin.Default()
 
@@ -65,9 +65,8 @@ func StartServer() {
 	r.POST("/pvlc_patient/:id/add", handler.AddPvlcMedFormulaToCart)
 	r.POST("/pvlc_med_calc/delete", handler.DeletePvlcMedCart)
 
-	// API Routes с аутентификацией
+	// API Routes - ИСПРАВЛЕНО: убираем дублирование /api в группе
 	apiGroup := r.Group("/api")
-	apiGroup.Use(auth.AuthMiddleware()) // Применяем middleware аутентификации ко всем API routes
 	{
 		// Public routes (не требуют аутентификации)
 		public := apiGroup.Group("")

@@ -1,4 +1,3 @@
-// internal/api/auth_handlers.go
 package api
 
 import (
@@ -101,6 +100,13 @@ func (a *API) Logout(c *gin.Context) {
 	var req LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		a.errorResponse(c, http.StatusBadRequest, "Неверные данные запроса")
+		return
+	}
+
+	// ИСПРАВЛЕНО: проверяем что Redis клиент инициализирован
+	if a.redis == nil {
+		logrus.Error("Redis client not initialized in logout")
+		a.errorResponse(c, http.StatusInternalServerError, "Ошибка выхода из системы")
 		return
 	}
 

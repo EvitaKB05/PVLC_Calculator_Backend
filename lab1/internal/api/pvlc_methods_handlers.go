@@ -1,4 +1,3 @@
-// internal/api/pvlc_methods_handlers.go
 package api
 
 import (
@@ -21,8 +20,12 @@ type API struct {
 }
 
 // NewAPI создает новый экземпляр API
-func NewAPI(repo *repository.Repository) *API {
-	return &API{repo: repo}
+// ИСПРАВЛЕНО: добавляем параметр Redis
+func NewAPI(repo *repository.Repository, redisClient *redis.Client) *API {
+	return &API{
+		repo:  repo,
+		redis: redisClient,
+	}
 }
 
 // Вспомогательные функции для ответов

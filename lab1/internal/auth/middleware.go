@@ -48,6 +48,11 @@ func GenerateToken(userID uint, login string, isModerator bool) (string, error) 
 
 // ParseToken проверяет и парсит JWT токен
 func ParseToken(tokenString string) (*ds.JWTClaims, error) {
+	// ИСПРАВЛЕНО: добавляем проверку на nil redisClient
+	if redisClient == nil {
+		return nil, errors.New("redis client not initialized")
+	}
+
 	token, err := jwt.ParseWithClaims(tokenString, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(jwtSecret), nil
 	})

@@ -1299,7 +1299,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Lung Capacity Calculation API",
 	Description:      "API для расчета должной жизненной емкости легких (ДЖЕЛ)\nЛабораторная работа 4 - Добавление аутентификации и авторизации",
