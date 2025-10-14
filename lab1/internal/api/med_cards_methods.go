@@ -17,11 +17,11 @@ import (
 // GetCartIcon godoc
 // @Summary Получение иконки корзины
 // @Description Возвращает информацию о корзине пользователя (количество items)
-// @Tags cart
+// @Tags med_card
 // @Produce json
 // @Success 200 {object} ds.CartIconResponse
 // @Failure 401 {object} map[string]string
-// @Router /api/cart/icon [get]
+// @Router /api/med_card/icon [get]
 // @Security BearerAuth
 func (a *API) GetCartIcon(c *gin.Context) {
 	// Проверка аутентификации выполняется в middleware RequireAuth

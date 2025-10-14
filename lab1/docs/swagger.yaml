@@ -211,7 +211,7 @@ paths:
             type: object
       summary: Аутентификация пользователя
       tags:
-      - auth
+      - med_auth
   /api/auth/logout:
     post:
       consumes:
@@ -243,7 +243,7 @@ paths:
       - BearerAuth: []
       summary: Выход пользователя
       tags:
-      - auth
+      - med_auth
   /api/auth/profile:
     get:
       description: Возвращает информацию о текущем пользователе
@@ -264,8 +264,8 @@ paths:
       - BearerAuth: []
       summary: Получение профиля пользователя
       tags:
-      - auth
-  /api/cart/icon:
+      - med_auth
+  /api/med_card/icon:
     get:
       description: Возвращает информацию о корзине пользователя (количество items)
       produces:
@@ -285,7 +285,7 @@ paths:
       - BearerAuth: []
       summary: Получение иконки корзины
       tags:
-      - cart
+      - med_card
   /api/pvlc-med-cards:
     get:
       description: Возвращает список заявок пользователя (для модераторов - все заявки)
@@ -591,7 +591,7 @@ paths:
             type: array
       summary: Получение списка формул
       tags:
-      - formulas
+      - med_formulas
     post:
       consumes:
       - application/json
@@ -627,7 +627,7 @@ paths:
       - BearerAuth: []
       summary: Создание новой формулы
       tags:
-      - formulas
+      - med_formulas
   /api/pvlc-med-formulas/{id}:
     delete:
       description: Удаляет формулу ДЖЕЛ (только для модераторов)
@@ -668,7 +668,7 @@ paths:
       - BearerAuth: []
       summary: Удаление формулы
       tags:
-      - formulas
+      - med_formulas
     get:
       description: Возвращает информацию о конкретной формуле ДЖЕЛ
       parameters:
@@ -698,7 +698,7 @@ paths:
             type: object
       summary: Получение конкретной формулы
       tags:
-      - formulas
+      - med_formulas
     put:
       consumes:
       - application/json
@@ -746,7 +746,7 @@ paths:
       - BearerAuth: []
       summary: Обновление формулы
       tags:
-      - formulas
+      - med_formulas
   /api/pvlc-med-formulas/{id}/add-to-cart:
     post:
       description: Добавляет формулу в заявку-черновик пользователя
@@ -780,7 +780,7 @@ paths:
       - BearerAuth: []
       summary: Добавление формулы в корзину
       tags:
-      - formulas
+      - med_formulas
   /api/pvlc-med-formulas/{id}/image:
     post:
       consumes:
@@ -828,7 +828,7 @@ paths:
       - BearerAuth: []
       summary: Загрузка изображения для формулы
       tags:
-      - formulas
+      - med_formulas
 securityDefinitions:
   BearerAuth:
     description: 'JWT токен для аутентификации. Формат: "Bearer {token}"'

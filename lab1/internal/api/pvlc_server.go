@@ -109,7 +109,7 @@ func StartServer() {
 			authRequired.GET("/auth/profile", api.GetProfile) // Профиль
 
 			// Cart routes
-			authRequired.GET("/cart/icon", api.GetCartIcon) // Иконка корзины
+			authRequired.GET("/med_card/icon", api.GetCartIcon) // Иконка корзины
 
 			// Pvlc Med Formulas routes
 			authRequired.POST("/pvlc-med-formulas/:id/add-to-cart", api.AddPvlcMedFormulaToCart) // Добавление в корзину

@@ -34,7 +34,7 @@ type LogoutRequest struct {
 // Login godoc
 // @Summary Аутентификация пользователя
 // @Description Выполняет вход пользователя и возвращает JWT токен
-// @Tags auth
+// @Tags med_auth
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "Данные для входа"
@@ -90,7 +90,7 @@ func (a *API) Login(c *gin.Context) {
 // Logout godoc
 // @Summary Выход пользователя
 // @Description Добавляет JWT токен в черный список
-// @Tags auth
+// @Tags med_auth
 // @Accept json
 // @Produce json
 // @Param request body LogoutRequest true "Токен для выхода"
@@ -141,7 +141,7 @@ func (a *API) Logout(c *gin.Context) {
 // GetProfile godoc
 // @Summary Получение профиля пользователя
 // @Description Возвращает информацию о текущем пользователе
-// @Tags auth
+// @Tags med_auth
 // @Produce json
 // @Success 200 {object} ds.MedUserResponse
 // @Failure 401 {object} map[string]string

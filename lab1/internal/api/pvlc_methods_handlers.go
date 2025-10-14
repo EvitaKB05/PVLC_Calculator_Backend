@@ -46,7 +46,7 @@ func (a *API) errorResponse(c *gin.Context, statusCode int, message string) {
 // GetPvlcMedFormulas godoc
 // @Summary Получение списка формул
 // @Description Возвращает список формул с возможностью фильтрации
-// @Tags formulas
+// @Tags med_formulas
 // @Produce json
 // @Param category query string false "Фильтр по категории"
 // @Param gender query string false "Фильтр по полу"
@@ -91,7 +91,7 @@ func (a *API) GetPvlcMedFormulas(c *gin.Context) {
 // GetPvlcMedFormula godoc
 // @Summary Получение конкретной формулы
 // @Description Возвращает информацию о конкретной формуле ДЖЕЛ
-// @Tags formulas
+// @Tags med_formulas
 // @Produce json
 // @Param id path int true "ID формулы"
 // @Success 200 {object} ds.PvlcMedFormulaResponse
@@ -132,7 +132,7 @@ func (a *API) GetPvlcMedFormula(c *gin.Context) {
 // CreatePvlcMedFormula godoc
 // @Summary Создание новой формулы
 // @Description Создает новую формулу для расчета ДЖЕЛ (только для модераторов)
-// @Tags formulas
+// @Tags med_formulas
 // @Accept json
 // @Produce json
 // @Param request body ds.CreatePvlcMedFormulaRequest true "Данные формулы"
@@ -172,7 +172,7 @@ func (a *API) CreatePvlcMedFormula(c *gin.Context) {
 // UpdatePvlcMedFormula godoc
 // @Summary Обновление формулы
 // @Description Обновляет существующую формулу ДЖЕЛ (только для модераторов)
-// @Tags formulas
+// @Tags med_formulas
 // @Accept json
 // @Produce json
 // @Param id path int true "ID формулы"
@@ -242,7 +242,7 @@ func (a *API) UpdatePvlcMedFormula(c *gin.Context) {
 // DeletePvlcMedFormula godoc
 // @Summary Удаление формулы
 // @Description Удаляет формулу ДЖЕЛ (только для модераторов)
-// @Tags formulas
+// @Tags med_formulas
 // @Produce json
 // @Param id path int true "ID формулы"
 // @Success 200 {object} map[string]string
@@ -287,7 +287,7 @@ func (a *API) DeletePvlcMedFormula(c *gin.Context) {
 // UploadPvlcMedFormulaImage godoc
 // @Summary Загрузка изображения для формулы
 // @Description Загружает изображение для формулы ДЖЕЛ в MinIO (только для модераторов)
-// @Tags formulas
+// @Tags med_formulas
 // @Accept multipart/form-data
 // @Produce json
 // @Param id path int true "ID формулы"
@@ -352,7 +352,7 @@ func (a *API) UploadPvlcMedFormulaImage(c *gin.Context) {
 // AddPvlcMedFormulaToCart godoc
 // @Summary Добавление формулы в корзину
 // @Description Добавляет формулу в заявку-черновик пользователя
-// @Tags formulas
+// @Tags med_formulas
 // @Produce json
 // @Param id path int true "ID формулы"
 // @Success 200 {object} map[string]interface{}

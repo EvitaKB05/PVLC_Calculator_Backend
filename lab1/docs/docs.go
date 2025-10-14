@@ -34,7 +34,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "med_auth"
                 ],
                 "summary": "Аутентификация пользователя",
                 "parameters": [
@@ -91,7 +91,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "med_auth"
                 ],
                 "summary": "Выход пользователя",
                 "parameters": [
@@ -139,7 +139,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "med_auth"
                 ],
                 "summary": "Получение профиля пользователя",
                 "responses": {
@@ -161,7 +161,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/cart/icon": {
+        "/api/med_card/icon": {
             "get": {
                 "security": [
                     {
@@ -173,7 +173,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "cart"
+                    "med_card"
                 ],
                 "summary": "Получение иконки корзины",
                 "responses": {
@@ -621,7 +621,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Получение списка формул",
                 "parameters": [
@@ -682,7 +682,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Создание новой формулы",
                 "parameters": [
@@ -732,7 +732,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Получение конкретной формулы",
                 "parameters": [
@@ -785,7 +785,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Обновление формулы",
                 "parameters": [
@@ -856,7 +856,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Удаление формулы",
                 "parameters": [
@@ -920,7 +920,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Добавление формулы в корзину",
                 "parameters": [
@@ -976,7 +976,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "formulas"
+                    "med_formulas"
                 ],
                 "summary": "Загрузка изображения для формулы",
                 "parameters": [
