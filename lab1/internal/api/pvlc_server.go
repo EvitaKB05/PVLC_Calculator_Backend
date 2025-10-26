@@ -115,11 +115,11 @@ func StartServer() {
 			authRequired.POST("/pvlc-med-formulas/:id/add-to-cart", api.AddPvlcMedFormulaToCart) // Добавление в корзину
 
 			// Pvlc Med Cards routes (user specific)
-			authRequired.GET("/pvlc-med-cards", api.GetPvlcMedCards)                  // Список заявок пользователя
-			authRequired.GET("/pvlc-med-cards/:id", api.GetPvlcMedCard)               // Конкретная заявка
-			authRequired.PUT("/pvlc-med-cards/:id", api.UpdatePvlcMedCard)            // Обновление заявки
-			authRequired.PUT("/pvlc-med-cards/:id/finalize", api.FinalizePvlcMedCard) // Формирование заявки
-			authRequired.DELETE("/pvlc-med-cards/:id", api.DeletePvlcMedCard)         // Удаление заявки
+			authRequired.GET("/pvlc-med-cards", api.GetPvlcMedCards)              // Список заявок пользователя
+			authRequired.GET("/pvlc-med-cards/:id", api.GetPvlcMedCard)           // Конкретная заявка
+			authRequired.PUT("/pvlc-med-cards/:id", api.UpdatePvlcMedCard)        // Обновление заявки
+			authRequired.PUT("/pvlc-med-cards/:id/form", api.FinalizePvlcMedCard) // Формирование заявки
+			authRequired.DELETE("/pvlc-med-cards/:id", api.DeletePvlcMedCard)     // Удаление заявки
 
 			// Med Mm Pvlc Calculations routes
 			authRequired.DELETE("/med-mm-pvlc-calculations", api.DeleteMedMmPvlcCalculation) // Удаление расчета

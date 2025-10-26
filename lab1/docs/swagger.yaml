@@ -509,7 +509,7 @@ paths:
       summary: Завершение/отклонение заявки
       tags:
       - medical-cards
-  /api/pvlc-med-cards/{id}/finalize:
+  /api/pvlc-med-cards/{id}/form:
     put:
       description: Переводит заявку из статуса черновика в сформированную
       parameters:

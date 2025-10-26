@@ -310,7 +310,7 @@ func (a *API) UpdatePvlcMedCard(c *gin.Context) {
 // @Failure 401 {object} map[string]string
 // @Failure 403 {object} map[string]string
 // @Failure 404 {object} map[string]string
-// @Router /api/pvlc-med-cards/{id}/finalize [put]
+// @Router /api/pvlc-med-cards/{id}/form [put]
 // @Security BearerAuth
 func (a *API) FinalizePvlcMedCard(c *gin.Context) {
 	// Проверка аутентификации выполняется в middleware RequireAuth

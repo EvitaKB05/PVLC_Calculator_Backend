@@ -541,7 +541,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/pvlc-med-cards/{id}/finalize": {
+        "/api/pvlc-med-cards/{id}/form": {
             "put": {
                 "security": [
                     {

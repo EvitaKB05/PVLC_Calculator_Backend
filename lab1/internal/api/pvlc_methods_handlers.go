@@ -398,7 +398,7 @@ func (a *API) AddPvlcMedFormulaToCart(c *gin.Context) {
 	}
 
 	a.successResponse(c, gin.H{
-		"message":     "Формула добавлена в заявку",
+		"message":     "пациент добавлен в мед-карту",
 		"med_card_id": card.ID,
 	})
 }
